@@ -4,8 +4,86 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NYC Taxi Urban Mobility Explorer</title>
+    <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-    <h1>NYC Taxi Urban Mobility Explorer</h1>
+
+    <!-- Header -->
+    <header>
+        <h1>NYC Taxi Urban Mobility Explorer</h1>
+        <p>Analysing urban movement patterns across New York City</p>
+    </header>
+
+    <!-- Filters -->
+     <section id="filters">
+        <h2>Filter Trips</h2>
+        <div class="filter-group">
+            <label for="borough-select">Borough</label>
+            <select id="borough-select">
+                <option value="all">All Boroughs</option>
+                <option value="Manhattan">Manhattan</option>
+                <option value="Brooklyn">Brooklyn</option>
+                <option value="Queens">Queens</option>
+                <option value="Bronx">Bronx</option>
+                <option value="Staten Island">Staten Island</option>
+            </select>
+        </div>
+        <div class="filter-group">
+         <label for="hour-select">Hour of Day</label>
+            <select id="hour-select">
+                <option value="all">All Hours</option>
+                <option value="morning">Morning (6am - 12pm)</option>
+                <option value="afternoon">Afternoon (12pm - 6pm)</option>
+                <option value="evening">Evening (6pm - 12am)</option>
+                <option value="night">Night (12am - 6am)</option>
+            </select>
+        </div>
+        <button id="apply-filters">Apply Filters</button>
+    </section>
+
+    <!-- MAP -->
+    <section id="map-section">
+        <h2>Trip Density Map</h2>
+        <div id="map"></div>
+    </section>
+
+    <!-- CHARTS -->
+    <section id="charts-section">
+        <h2>Analytics</h2>
+        <div class="charts-grid">
+            <div class="chart-container">
+                <h3>Trips by Hour of Day</h3>
+                <canvas id="trips-by-hour-chart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h3>Average Fare by Borough</h3>
+                <canvas id="fare-by-borough-chart"></canvas>
+            </div>
+        </div>
+    </section>
+
+    <!-- INSIGHT CARDS -->
+    <section id="insights-section">
+        <h2>Key Insights</h2>
+        <div class="insights-grid">
+            <div class="insight-card" id="insight-congestion">
+                <h3>Congestion Pulse</h3>
+                <p>Loading...</p>
+            </div>
+            <div class="insight-card" id="insight-profitability">
+                <h3>Profitability Hotspots</h3>
+                <p>Loading...</p>
+            </div>
+            <div class="insight-card" id="insight-tipping">
+                <h3>Tipping Behaviour</h3>
+                <p>Loading...</p>
+            </div>
+        </div>
+    </section>
+
+    <script src="js/api.js"></script>
+    <script src="js/charts.js"></script>
+    <script src="js/map.js"></script>
+
 </body>
-</html>
+</html>   
