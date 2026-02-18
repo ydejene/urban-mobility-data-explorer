@@ -8,11 +8,18 @@
 </head>
 <body>
 
-    <!-- Header -->
-    <header>
-        <h1>NYC Taxi Urban Mobility Explorer</h1>
-        <p>Analysing urban movement patterns across New York City</p>
-    </header>
+<!-- Hero Section -->
+<section id="hero">
+    <div class="hero-content">
+        <div class="hero-text">
+            <h1>NYC Taxi Urban Mobility Explorer</h1>
+            <p>Explore real-time urban movement patterns using NYC Taxi & Limousine Commission data. This interactive dashboard provides insights into trip density, fare analytics, congestion patterns, and tipping behaviour across all five boroughs.</p>
+        </div>
+        <div class="hero-image">
+           <img src="images/nyc-taxi.png" alt="NYC Yellow Taxi">
+        </div>
+    </div>
+</section>
 
     <!-- Filters -->
      <section id="filters">
@@ -41,13 +48,13 @@
         <button id="apply-filters">Apply Filters</button>
     </section>
 
-    <!-- MAP -->
+    <!-- Map -->
     <section id="map-section">
         <h2>Trip Density Map</h2>
         <div id="map"></div>
     </section>
 
-    <!-- CHARTS -->
+    <!-- Charts -->
     <section id="charts-section">
         <h2>Analytics</h2>
         <div class="charts-grid">
@@ -62,23 +69,26 @@
         </div>
     </section>
 
-    <!-- INSIGHT CARDS -->
+    <!-- Insight Cards -->
     <section id="insights-section">
-        <h2>Key Insights</h2>
-        <div class="insights-grid">
-            <div class="insight-card" id="insight-congestion">
-                <h3>Congestion Pulse</h3>
-                <p>Loading...</p>
-            </div>
-            <div class="insight-card" id="insight-profitability">
-                <h3>Profitability Hotspots</h3>
-                <p>Loading...</p>
-            </div>
-            <div class="insight-card" id="insight-tipping">
-                <h3>Tipping Behaviour</h3>
-                <p>Loading...</p>
-            </div>
+    <h2>Key Insights</h2>
+    <div class="insights-grid">
+        <div class="insight-card" id="insight-congestion">
+            <img src="images/congestion-icon.svg" alt="Congestion icon" class="insight-icon">
+            <h3>Congestion Pulse</h3>
+            <p>Loading...</p>
         </div>
+        <div class="insight-card" id="insight-profitability">
+            <img src="images/profitability-icon.svg" alt="Profitability icon" class="insight-icon">
+            <h3>Profitability Hotspots</h3>
+            <p>Loading...</p>
+        </div>
+        <div class="insight-card" id="insight-tipping">
+            <img src="images/tipping-icon.svg" alt="Tipping icon" class="insight-icon">
+            <h3>Tipping Behaviour</h3>
+            <p>Loading...</p>
+        </div>
+    </div>
     </section>
 
     <script src="js/api.js"></script>
