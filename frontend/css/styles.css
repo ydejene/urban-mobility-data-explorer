@@ -374,3 +374,74 @@ html {
 section {
     scroll-margin-top: 2rem;
 }
+
+/* Zone search styling */
+.search-group {
+    position: relative;
+    flex: 1;
+    max-width: 300px;
+}
+
+.search-container {
+    position: relative;
+}
+
+#zoneSearch {
+    width: 100%;
+    background-color: white;
+    color: #333;
+    border: 2px solid #e0e0e0;
+    padding: 0.5rem;
+    border-radius: 6px;
+    font-family: inherit;
+    transition: border-color 0.3s;
+}
+
+#zoneSearch:focus {
+    outline: none;
+    border-color: #FFC107;
+}
+
+.search-results {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    max-height: 300px;
+    overflow-y: auto;
+    z-index: 1000;
+    display: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.search-results.active {
+    display: block;
+}
+
+.search-result-item {
+    padding: 0.75rem;
+    cursor: pointer;
+    border-bottom: 1px solid #f0f0f0;
+    transition: background 0.2s;
+}
+
+.search-result-item:last-child {
+    border-bottom: none;
+}
+
+.search-result-item:hover {
+    background: rgba(255, 193, 7, 0.1);
+}
+
+.search-result-item strong {
+    color: #FFC107;
+}
+
+.search-result-item small {
+    color: #666;
+    display: block;
+    margin-top: 0.25rem;
+}
