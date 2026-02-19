@@ -148,3 +148,31 @@ document.addEventListener('DOMContentLoaded', () => {
     // Load zones on startup
     loadZones();
 });
+
+// Add error state display to map
+    function showMapError(message) {
+        const mapDiv = document.getElementById('map');
+        if (mapDiv) {
+            const errorDiv = document.createElement('div');
+            errorDiv.style.cssText = `
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: white;
+                padding: 2rem;
+                border-radius: 8px;
+                border: 2px solid #ff4444;
+                text-align: center;
+                z-index: 1000;
+            `;
+            errorDiv.innerHTML = `
+                <p style="color: #ff4444; font-weight: bold; margin: 0 0 0.5rem 0;">⚠️ Map Loading Error</p>
+                <p style="color: #666; margin: 0; font-size: 0.875rem;">${message}</p>
+            `;
+            mapDiv.appendChild(errorDiv);
+        }
+    }
+    
+    // Export for use in error handling
+    window.showMapError = showMapError;
