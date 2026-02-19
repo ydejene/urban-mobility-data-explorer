@@ -153,3 +153,24 @@ document.addEventListener('DOMContentLoaded', function() {
             await loadFareChart();
         });
     }
+
+    // Update charts when hour filter changes
+    const hourFilter = document.getElementById('hour-select');
+    
+    if (hourFilter) {
+        hourFilter.addEventListener('change', async () => {
+            const selectedHour = hourFilter.value;
+            console.log(`Filtering by time: ${selectedHour}`);
+            
+            // Destroy existing charts
+            const tripsChartElement = Chart.getChart("trips-by-hour-chart");
+            if (tripsChartElement) tripsChartElement.destroy();
+            
+            const fareChartElement = Chart.getChart("fare-by-borough-chart");
+            if (fareChartElement) fareChartElement.destroy();
+            
+            // Reload charts with new filter
+            await loadTripsChart();
+            await loadFareChart();
+        });
+    }
