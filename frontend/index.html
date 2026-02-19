@@ -13,6 +13,16 @@
 
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<!--    <script>
+    // Check authentication on page load
+    document.addEventListener('DOMContentLoaded', () => {
+        const token = localStorage.getItem('auth_token');
+        if (!token) {
+            window.location.href = 'login.html';
+        }
+    });
+</script>
+-->
 </head>
 <body>
 
@@ -20,11 +30,19 @@
 <section id="hero">
     <div class="hero-content">
         <div class="hero-text">
-            <h1>NYC Taxi Urban Mobility Explorer</h1>
-            <p>Explore real-time urban movement patterns using NYC Taxi & Limousine Commission data. This interactive dashboard provides insights into trip density, fare analytics, congestion patterns, and tipping behaviour across all five boroughs.</p>
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+                <div>
+                    <h1>NYC Taxi Urban Mobility Explorer</h1>
+                    <p>Explore real-time urban movement patterns using NYC Taxi & Limousine Commission data. This interactive dashboard provides insights into trip density, fare analytics, congestion patterns, and tipping behaviour across all five boroughs.</p>
+                </div>
+                <div style="text-align: right;">
+                    <span id="userEmail" style="font-size: 0.875rem; color: #666; display: block; margin-bottom: 0.5rem;"></span>
+                    <button id="logoutBtn" style="background: #ff4444; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-size: 0.875rem;">Logout</button>
+                </div>
+            </div>
         </div>
         <div class="hero-image">
-           <img src="images/nyc-taxi.png" alt="NYC Yellow Taxi">
+            <img src="images/nyc-taxi.png" alt="NYC Yellow Taxi">
         </div>
     </div>
 </section>
@@ -53,13 +71,48 @@
                 <option value="night">Night (12am - 6am)</option>
             </select>
         </div>
+        <div class="filter-group search-group">
+    <label for="zoneSearch">Search Zone</label>
+    <div class="search-container">
+        <input type="text" id="zoneSearch" placeholder="Type to search zones...">
+        <div id="searchResults" class="search-results"></div>
+    </div>
+    </div>
         <button id="apply-filters">Apply Filters</button>
+    </section>
+
+    <!-- Filter Chips -->
+    <section class="filter-chips">
+    <button class="chip active" data-filter="all">
+        <span>All Zones</span>
+    </button>
+    <button class="chip" data-filter="manhattan">
+        <span>Manhattan</span>
+    </button>
+    <button class="chip" data-filter="brooklyn">
+        <span>Brooklyn</span>
+    </button>
+    <button class="chip" data-filter="queens">
+        <span>Queens</span>
+    </button>
     </section>
 
     <!-- Map -->
     <section id="map-section">
         <h2>Trip Density Map</h2>
         <div id="map"></div>
+        <!-- Map Legend -->
+    <div class="map-legend">
+    <h4>Legend</h4>
+    <div class="legend-item">
+        <span class="legend-color" style="background: #FFC107;"></span>
+        <span>Taxi Zones</span>
+    </div>
+    <div class="legend-item">
+        <span class="legend-color" style="background: #ff7b72;"></span>
+        <span>Selected Zone</span>
+    </div>
+    </div>
     </section>
 
     <!-- Charts -->
@@ -99,9 +152,35 @@
     </div>
     </section>
 
+    <!-- Zone Details Side Panel -->
+    <div id="detailsPanel" class="details-panel">
+    <div class="panel-header">
+        <h3 id="panelZoneName">Zone Details</h3>
+        <button id="closePanelBtn" class="close-btn">×</button>
+    </div>
+    <div class="panel-content">
+        <div class="panel-section">
+            <h4>Location</h4>
+            <p id="panelBorough">-</p>
+        </div>
+        <div class="panel-section">
+            <h4>Status</h4>
+            <p id="panelStatus">-</p>
+        </div>
+        <div class="panel-section">
+            <p class="info-text">Click on any zone on the map to view detailed statistics.</p>
+        </div>
+    </div>
+    </div>
+
     <script src="js/api.js"></script>
     <script src="js/charts.js"></script>
+    <script src="js/sample-zones.js"></script>
     <script src="js/map.js"></script>
+    <script src="js/insights.js"></script>
+    <script src="js/search.js"></script>
+    <script src="js/panel.js"></script>
+    <script src="js/chips.js"></script>
 
 </body>
 </html>   

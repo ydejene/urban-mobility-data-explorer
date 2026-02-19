@@ -1,0 +1,178 @@
+// Initialize Leaflet map with zone data
+document.addEventListener('DOMContentLoaded', () => {
+    const API_BASE = 'http://127.0.0.1:5000/api';
+    
+    // Create map centered on NYC
+    const map = L.map('map').setView([40.7128, -74.0060], 11);
+    
+    // Add dark tile layer
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; OpenStreetMap &copy; CARTO'
+    }).addTo(map);
+    
+    let geoLayer;
+    
+    // Fetch and display taxi zones
+    async function loadZones() {
+        try {
+            console.log('Fetching taxi zones...');
+            const response = await fetch(`${API_BASE}/zones`);
+            
+            let zones;
+            if (!response.ok) {
+                console.log('API not available, using sample data');
+                zones = SAMPLE_ZONES;
+            } else {
+                zones = await response.json();
+            }
+            
+            console.log(`Loaded ${zones.length} zones`);
+            
+            // Create GeoJSON feature collection
+            const featureCollection = {
+                type: 'FeatureCollection',
+                features: zones.map(zone => ({
+                    type: 'Feature',
+                    geometry: zone.geometry,
+                    properties: {
+                        id: zone.id,
+                        borough: zone.borough,
+                        zone: zone.zone
+                    }
+                }))
+            };
+            
+            // Add zones to map
+            geoLayer = L.geoJSON(featureCollection, {
+                style: {
+                    color: '#FFC107',
+                    weight: 1,
+                    fillOpacity: 0.1,
+                    fillColor: '#FFC107'
+                },
+                onEachFeature: (feature, layer) => {
+                    layer.bindPopup(`<b>${feature.properties.zone}</b><br>${feature.properties.borough}`);
+                    
+                    // Add click handler to open details panel
+                    layer.on('click', () => {
+                        if (typeof openZoneDetails === 'function') {
+                            openZoneDetails(feature.properties);
+                        }
+                    });
+                }
+            }).addTo(map);
+            
+            // Fit map to show all zones
+            if (zones.length > 0) {
+                map.fitBounds(geoLayer.getBounds());
+            }
+            
+        } catch (error) {
+            console.error('Error loading zones:', error);
+            // Use sample data on error
+            const zones = SAMPLE_ZONES;
+            console.log('Using sample data due to error');
+            
+            // Create GeoJSON feature collection
+            const featureCollection = {
+                type: 'FeatureCollection',
+                features: zones.map(zone => ({
+                    type: 'Feature',
+                    geometry: zone.geometry,
+                    properties: {
+                        id: zone.id,
+                        borough: zone.borough,
+                        zone: zone.zone
+                    }
+                }))
+            };
+            
+            // Add zones to map
+            geoLayer = L.geoJSON(featureCollection, {
+                style: {
+                    color: '#FFC107',
+                    weight: 1,
+                    fillOpacity: 0.1,
+                    fillColor: '#FFC107'
+                },
+                onEachFeature: (feature, layer) => {
+                    layer.bindPopup(`<b>${feature.properties.zone}</b><br>${feature.properties.borough}`);
+                    
+                    // Add click handler to open details panel
+                    layer.on('click', () => {
+                        if (typeof openZoneDetails === 'function') {
+                            openZoneDetails(feature.properties);
+                        }
+                    });
+                }
+            }).addTo(map);
+            
+            // Fit map to show all zones
+            if (zones.length > 0) {
+                map.fitBounds(geoLayer.getBounds());
+            }
+        }
+    }
+    
+    // Borough filter functionality
+    const boroughFilter = document.getElementById('borough-select');
+    
+    if (boroughFilter) {
+        boroughFilter.addEventListener('change', () => {
+            const selectedBorough = boroughFilter.value;
+            
+            if (!geoLayer) return;
+            
+            // Filter and style zones based on selection
+            geoLayer.eachLayer(layer => {
+                const borough = layer.feature.properties.borough;
+                const isMatch = selectedBorough === 'all' || borough === selectedBorough;
+                
+                if (isMatch) {
+                    layer.setStyle({
+                        fillOpacity: 0.3,
+                        weight: 2
+                    });
+                } else {
+                    layer.setStyle({
+                        fillOpacity: 0.05,
+                        weight: 0.5
+                    });
+                }
+            });
+            
+            console.log(`Filtered to: ${selectedBorough}`);
+        });
+    }
+    
+    // Load zones on startup
+    loadZones();
+});
+
+// Add error state display to map
+    function showMapError(message) {
+        const mapDiv = document.getElementById('map');
+        if (mapDiv) {
+            const errorDiv = document.createElement('div');
+            errorDiv.style.cssText = `
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: white;
+                padding: 2rem;
+                border-radius: 8px;
+                border: 2px solid #ff4444;
+                text-align: center;
+                z-index: 1000;
+            `;
+            errorDiv.innerHTML = `
+                <p style="color: #ff4444; font-weight: bold; margin: 0 0 0.5rem 0;">⚠️ Map Loading Error</p>
+                <p style="color: #666; margin: 0; font-size: 0.875rem;">${message}</p>
+            `;
+            mapDiv.appendChild(errorDiv);
+        }
+    }
+    
+    // Export for use in error handling
+    window.showMapError = showMapError;
