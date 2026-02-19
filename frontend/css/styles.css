@@ -204,3 +204,35 @@ body {
     color: #666;
     font-size: 0.95rem;
 }
+
+/* Loading indicator for charts */
+.chart-container {
+    position: relative;
+    min-height: 300px;
+}
+
+.chart-loading {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #666;
+    font-size: 0.875rem;
+}
+
+.chart-loading::after {
+    content: '';
+    display: block;
+    width: 30px;
+    height: 30px;
+    margin: 1rem auto 0;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #FFC107;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
