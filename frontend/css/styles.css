@@ -364,3 +364,13 @@ body {
     outline: none;
     border-color: #FFC107;
 }
+
+/* Smooth scrolling */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Section spacing */
+section {
+    scroll-margin-top: 2rem;
+}
