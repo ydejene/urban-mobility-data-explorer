@@ -65,3 +65,34 @@ document.addEventListener('DOMContentLoaded', () => {
     // Load zones on startup
     loadZones();
 });
+
+// Borough filter functionality
+    const boroughFilter = document.getElementById('borough-select');
+    
+    if (boroughFilter) {
+        boroughFilter.addEventListener('change', () => {
+            const selectedBorough = boroughFilter.value;
+            
+            if (!geoLayer) return;
+            
+            // Filter and style zones based on selection
+            geoLayer.eachLayer(layer => {
+                const borough = layer.feature.properties.borough;
+                const isMatch = selectedBorough === 'all' || borough === selectedBorough;
+                
+                if (isMatch) {
+                    layer.setStyle({
+                        fillOpacity: 0.3,
+                        weight: 2
+                    });
+                } else {
+                    layer.setStyle({
+                        fillOpacity: 0.05,
+                        weight: 0.5
+                    });
+                }
+            });
+            
+            console.log(`Filtered to: ${selectedBorough}`);
+        });
+    }
