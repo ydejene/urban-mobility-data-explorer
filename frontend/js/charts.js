@@ -132,3 +132,24 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Load fare chart on startup
     loadFareChart();
+
+    // Update charts when borough filter changes
+    const boroughFilter = document.getElementById('borough-select');
+    
+    if (boroughFilter) {
+        boroughFilter.addEventListener('change', async () => {
+            const selectedBorough = boroughFilter.value;
+            console.log(`Updating charts for: ${selectedBorough}`);
+            
+            // Destroy existing charts
+            const tripsChartElement = Chart.getChart("trips-by-hour-chart");
+            if (tripsChartElement) tripsChartElement.destroy();
+            
+            const fareChartElement = Chart.getChart("fare-by-borough-chart");
+            if (fareChartElement) fareChartElement.destroy();
+            
+            // Reload charts with new filter
+            await loadTripsChart();
+            await loadFareChart();
+        });
+    }
