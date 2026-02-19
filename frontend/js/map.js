@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     let geoLayer;
     
-// Fetch and display taxi zones
+    // Fetch and display taxi zones
     async function loadZones() {
         try {
             console.log('Fetching taxi zones...');
@@ -52,6 +52,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 },
                 onEachFeature: (feature, layer) => {
                     layer.bindPopup(`<b>${feature.properties.zone}</b><br>${feature.properties.borough}`);
+                    
+                    // Add click handler to open details panel
+                    layer.on('click', () => {
+                        if (typeof openZoneDetails === 'function') {
+                            openZoneDetails(feature.properties);
+                        }
+                    });
                 }
             }).addTo(map);
             
@@ -65,7 +72,8 @@ document.addEventListener('DOMContentLoaded', () => {
             // Use sample data on error
             const zones = SAMPLE_ZONES;
             console.log('Using sample data due to error');
-            // (repeat the GeoJSON creation code here)
+            
+            // Create GeoJSON feature collection
             const featureCollection = {
                 type: 'FeatureCollection',
                 features: zones.map(zone => ({
@@ -79,6 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }))
             };
             
+            // Add zones to map
             geoLayer = L.geoJSON(featureCollection, {
                 style: {
                     color: '#FFC107',
@@ -88,14 +97,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 },
                 onEachFeature: (feature, layer) => {
                     layer.bindPopup(`<b>${feature.properties.zone}</b><br>${feature.properties.borough}`);
+                    
+                    // Add click handler to open details panel
+                    layer.on('click', () => {
+                        if (typeof openZoneDetails === 'function') {
+                            openZoneDetails(feature.properties);
+                        }
+                    });
                 }
             }).addTo(map);
             
-            map.fitBounds(geoLayer.getBounds());
+            // Fit map to show all zones
+            if (zones.length > 0) {
+                map.fitBounds(geoLayer.getBounds());
+            }
         }
     }
-
-// Borough filter functionality
+    
+    // Borough filter functionality
     const boroughFilter = document.getElementById('borough-select');
     
     if (boroughFilter) {
@@ -125,3 +144,7 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log(`Filtered to: ${selectedBorough}`);
         });
     }
+    
+    // Load zones on startup
+    loadZones();
+});
