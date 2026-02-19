@@ -557,3 +557,48 @@ section {
     border-color: #FFC107;
     font-weight: 600;
 }
+
+/* Map legend styling */
+.map-legend {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(8px);
+    border: 2px solid #FFC107;
+    border-radius: 8px;
+    padding: 1rem;
+    z-index: 1000;
+    min-width: 150px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.map-legend h4 {
+    margin: 0 0 0.75rem 0;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #1a1a2e;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.legend-item:last-child {
+    margin-bottom: 0;
+}
+
+.legend-color {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    border: 1px solid #333;
+}
+
+.legend-item span:last-child {
+    font-size: 0.8rem;
+    color: #333;
+}
