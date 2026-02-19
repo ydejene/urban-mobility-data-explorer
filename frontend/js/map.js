@@ -12,17 +12,20 @@ document.addEventListener('DOMContentLoaded', () => {
     
     let geoLayer;
     
-    // Fetch and display taxi zones
+// Fetch and display taxi zones
     async function loadZones() {
         try {
             console.log('Fetching taxi zones...');
             const response = await fetch(`${API_BASE}/zones`);
             
+            let zones;
             if (!response.ok) {
-                throw new Error(`API Error: ${response.status}`);
+                console.log('API not available, using sample data');
+                zones = SAMPLE_ZONES;
+            } else {
+                zones = await response.json();
             }
             
-            const zones = await response.json();
             console.log(`Loaded ${zones.length} zones`);
             
             // Create GeoJSON feature collection
@@ -59,12 +62,38 @@ document.addEventListener('DOMContentLoaded', () => {
             
         } catch (error) {
             console.error('Error loading zones:', error);
+            // Use sample data on error
+            const zones = SAMPLE_ZONES;
+            console.log('Using sample data due to error');
+            // (repeat the GeoJSON creation code here)
+            const featureCollection = {
+                type: 'FeatureCollection',
+                features: zones.map(zone => ({
+                    type: 'Feature',
+                    geometry: zone.geometry,
+                    properties: {
+                        id: zone.id,
+                        borough: zone.borough,
+                        zone: zone.zone
+                    }
+                }))
+            };
+            
+            geoLayer = L.geoJSON(featureCollection, {
+                style: {
+                    color: '#FFC107',
+                    weight: 1,
+                    fillOpacity: 0.1,
+                    fillColor: '#FFC107'
+                },
+                onEachFeature: (feature, layer) => {
+                    layer.bindPopup(`<b>${feature.properties.zone}</b><br>${feature.properties.borough}`);
+                }
+            }).addTo(map);
+            
+            map.fitBounds(geoLayer.getBounds());
         }
     }
-    
-    // Load zones on startup
-    loadZones();
-});
 
 // Borough filter functionality
     const boroughFilter = document.getElementById('borough-select');
