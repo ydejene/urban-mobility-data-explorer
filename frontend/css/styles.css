@@ -445,3 +445,79 @@ section {
     display: block;
     margin-top: 0.25rem;
 }
+
+/* Side panel styling */
+.details-panel {
+    position: fixed;
+    top: 0;
+    right: -400px;
+    width: 350px;
+    height: 100vh;
+    background: white;
+    z-index: 3000;
+    overflow-y: auto;
+    box-shadow: -4px 0 12px rgba(0, 0, 0, 0.15);
+    transition: right 0.3s ease;
+}
+
+.details-panel.open {
+    right: 0;
+}
+
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    border-bottom: 2px solid #FFC107;
+    background: #1a1a2e;
+    color: white;
+}
+
+.panel-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+}
+
+.close-btn {
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 2rem;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+}
+
+.close-btn:hover {
+    color: #FFC107;
+}
+
+.panel-content {
+    padding: 1.5rem;
+}
+
+.panel-section {
+    margin-bottom: 1.5rem;
+}
+
+.panel-section h4 {
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #666;
+    margin: 0 0 0.5rem 0;
+}
+
+.panel-section p {
+    margin: 0;
+    color: #333;
+}
+
+.info-text {
+    color: #666;
+    font-size: 0.875rem;
+    line-height: 1.5;
+}
