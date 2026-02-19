@@ -521,3 +521,39 @@ section {
     font-size: 0.875rem;
     line-height: 1.5;
 }
+
+/* Filter chips styling */
+.filter-chips {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+}
+
+.chip {
+    background: white;
+    color: #333;
+    border: 2px solid #e0e0e0;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.chip:hover {
+    border-color: #FFC107;
+    transform: translateY(-1px);
+}
+
+.chip.active {
+    background: #FFC107;
+    color: #1a1a1a;
+    border-color: #FFC107;
+    font-weight: 600;
+}
