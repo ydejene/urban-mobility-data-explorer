@@ -255,3 +255,21 @@ body {
 .insight-card:hover .insight-icon {
     transform: scale(1.1);
 }
+
+/* Button styling improvements */
+#apply-filters {
+    background-color: #FFC107;
+    color: #1a1a1a;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+#apply-filters:hover {
+    background-color: #FFB300;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(255, 193, 7, 0.3);
+}
+
+#apply-filters:active {
+    transform: translateY(0);
+}
