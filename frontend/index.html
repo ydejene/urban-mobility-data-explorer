@@ -13,6 +13,15 @@
 
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+    // Check authentication on page load
+    document.addEventListener('DOMContentLoaded', () => {
+        const token = localStorage.getItem('auth_token');
+        if (!token) {
+            window.location.href = 'login.html';
+        }
+    });
+</script>
 </head>
 <body>
 
@@ -20,11 +29,19 @@
 <section id="hero">
     <div class="hero-content">
         <div class="hero-text">
-            <h1>NYC Taxi Urban Mobility Explorer</h1>
-            <p>Explore real-time urban movement patterns using NYC Taxi & Limousine Commission data. This interactive dashboard provides insights into trip density, fare analytics, congestion patterns, and tipping behaviour across all five boroughs.</p>
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+                <div>
+                    <h1>NYC Taxi Urban Mobility Explorer</h1>
+                    <p>Explore real-time urban movement patterns using NYC Taxi & Limousine Commission data. This interactive dashboard provides insights into trip density, fare analytics, congestion patterns, and tipping behaviour across all five boroughs.</p>
+                </div>
+                <div style="text-align: right;">
+                    <span id="userEmail" style="font-size: 0.875rem; color: #666; display: block; margin-bottom: 0.5rem;"></span>
+                    <button id="logoutBtn" style="background: #ff4444; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-size: 0.875rem;">Logout</button>
+                </div>
+            </div>
         </div>
         <div class="hero-image">
-           <img src="images/nyc-taxi.png" alt="NYC Yellow Taxi">
+            <img src="images/nyc-taxi.png" alt="NYC Yellow Taxi">
         </div>
     </div>
 </section>
