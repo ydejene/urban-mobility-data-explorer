@@ -37,3 +37,11 @@ def run_pipeline():
     
     dal = TripDAL(db_path)
 
+    # 2. Process Zones (Dimension Table)
+    logger.info("--- Processing Taxi Zones ---")
+    zone_loader = ShapefileLoader(shp_path)
+    zones = zone_loader.load()
+    if zones:
+        clean_zones = DataCleaner.clean_zone_data(zones)
+        dal.insert_zones(clean_zones)
+
