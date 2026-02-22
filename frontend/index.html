@@ -16,3 +16,27 @@
 
     </style>
 </head>
+
+<body>
+    <div class="auth-container">
+        <div class="auth-header">
+            <h1>Welcome Back</h1>
+            <p>Enter your credentials to access the dashboard</p>
+        </div>
+        <div id="error-message" class="error-message"></div>
+        <form id="login-form">
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" placeholder="name@example.com" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" placeholder="••••••••" required>
+            </div>
+            <button type="submit" class="auth-button">Sign In</button>
+        </form>
+        <div class="auth-footer">
+            Don't have an account?<br>
+            <a href="signup.html" class="signup-btn">Create Account</a>
+        </div>
+    </div>
