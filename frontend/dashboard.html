@@ -1,0 +1,360 @@
+<!-- 
+  frontend\index.html
+  Main Dashboard Page: Structures the visual interface including the map, 
+  statistics bar, filter controls, and side panels for detailed analysis.
+-->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Urban Taxi Mobility Analyst</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Leaflet.js CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body class="dark-theme">
+    <header>
+        <div class="container">
+            <div class="header-top">
+                <h1>Urban Taxi Mobility Analyst</h1>
+                <div class="user-info">
+                    <span id="userDisplay" class="user-email"></span>
+                    <button id="logoutBtn" class="logout-btn">Logout</button>
+                </div>
+            </div>
+            <!-- Alert Banner for missing data -->
+            <div id="noDataAlert" class="no-data-alert hidden">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+                <span>No taxi activity found for this period. Try selecting dates in early January 2019.</span>
+            </div>
+
+            <div class="stats-bar">
+                <div class="stat-card loading">
+                    <h3>Total Trips</h3>
+                    <p id="totalTripsHeader">---</p>
+                </div>
+                <div class="stat-card loading">
+                    <h3>Total Passengers</h3>
+                    <p id="totalPassengersHeader">---</p>
+                </div>
+                <div class="stat-card loading">
+                    <h3>System Health Score</h3>
+                    <p id="systemHealth">---</p>
+                    <small>Integrity Rating</small>
+                </div>
+                <div class="stat-card loading">
+                    <h3>Avg mobility Speed</h3>
+                    <p id="avgMobilitySpeed">---</p>
+                </div>
+                <div class="stat-card" id="anomaliesCard">
+                    <div class="stat-header">
+                        <h3>Detected Noise</h3>
+                        <div class="diagnostic-info">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round" class="info-icon">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="12" y1="16" x2="12" y2="12"></line>
+                                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                            </svg>
+                            <div class="diagnostic-tooltip" id="anomalyTooltip">
+                                <div class="tooltip-item"><span>Speed Violations:</span> <strong
+                                        id="speedAnomCount">0</strong></div>
+                                <div class="tooltip-item"><span>Fare Mismatches:</span> <strong
+                                        id="fareAnomCount">0</strong></div>
+                            </div>
+                        </div>
+                    </div>
+                    <p id="totalAnomalies">0</p>
+                    <small>System Failures</small>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <div class="filter-panel">
+                <button id="mobileFilterToggle" class="mobile-filter-toggle">
+                    <span>Filter Options</span>
+                    <svg class="toggle-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                </button>
+                <section class="controls">
+                    <div class="filter-group">
+                        <label>Date Range</label>
+                        <div class="date-inputs">
+                            <input type="date" id="startDate" value="2019-01-01">
+                            <input type="date" id="endDate" value="2019-01-31">
+                        </div>
+                    </div>
+                    <div class="filter-group">
+                        <label for="boroughFilter">Borough</label>
+                        <div class="custom-dropdown" id="boroughDropdown">
+                            <button class="dropdown-trigger" id="boroughTrigger">
+                                <span id="selectedBorough">All Boroughs</span>
+                                <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+                                    <path d="M6 8L2 4h8z" />
+                                </svg>
+                            </button>
+                            <div class="dropdown-menu" id="boroughMenu">
+                                <div class="dropdown-item" data-borough="all">
+                                    <span>All Boroughs</span>
+                                </div>
+                                <div class="dropdown-item has-submenu" data-borough="Manhattan">
+                                    <span>Manhattan</span>
+                                    <div class="submenu-toggle">
+                                        <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+                                            <path d="M8 6L4 2v8z" />
+                                        </svg>
+                                    </div>
+                                    <div class="submenu" data-borough-name="Manhattan"></div>
+                                </div>
+                                <div class="dropdown-item has-submenu" data-borough="Brooklyn">
+                                    <span>Brooklyn</span>
+                                    <div class="submenu-toggle">
+                                        <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+                                            <path d="M8 6L4 2v8z" />
+                                        </svg>
+                                    </div>
+                                    <div class="submenu" data-borough-name="Brooklyn"></div>
+                                </div>
+                                <div class="dropdown-item has-submenu" data-borough="Queens">
+                                    <span>Queens</span>
+                                    <div class="submenu-toggle">
+                                        <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+                                            <path d="M8 6L4 2v8z" />
+                                        </svg>
+                                    </div>
+                                    <div class="submenu" data-borough-name="Queens"></div>
+                                </div>
+                                <div class="dropdown-item has-submenu" data-borough="Bronx">
+                                    <span>Bronx</span>
+                                    <div class="submenu-toggle">
+                                        <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+                                            <path d="M8 6L4 2v8z" />
+                                        </svg>
+                                    </div>
+                                    <div class="submenu" data-borough-name="Bronx"></div>
+                                </div>
+                                <div class="dropdown-item has-submenu" data-borough="Staten Island">
+                                    <span>Staten Island</span>
+                                    <div class="submenu-toggle">
+                                        <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+                                            <path d="M8 6L4 2v8z" />
+                                        </svg>
+                                    </div>
+                                    <div class="submenu" data-borough-name="Staten Island"></div>
+                                </div>
+                                <div class="dropdown-item" data-borough="EWR">
+                                    <span>Newark (EWR)</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Hidden select for compatibility -->
+                        <select id="boroughFilter" style="display: none;">
+                            <option value="all">All Boroughs</option>
+                            <option value="Manhattan">Manhattan</option>
+                            <option value="Brooklyn">Brooklyn</option>
+                            <option value="Queens">Queens</option>
+                            <option value="Bronx">Bronx</option>
+                            <option value="Staten Island">Staten Island</option>
+                            <option value="EWR">Newark (EWR)</option>
+                        </select>
+                    </div>
+                    <div class="filter-group search-group">
+                        <label for="zoneSearch">Search Zone</label>
+                        <div class="search-container">
+                            <input type="text" id="zoneSearch" placeholder="Type to search zones...">
+                            <div id="searchResults" class="search-results"></div>
+                        </div>
+                    </div>
+                    <div class="filter-group button-group">
+                        <button id="openInsightsBtn" class="btn-secondary"
+                            title="View detailed analysis for current selection">
+                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="btn-icon">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                <line x1="9" y1="3" x2="9" y2="21"></line>
+                            </svg>
+                            <span>View Insights</span>
+                        </button>
+                        <button id="generateReportBtn" class="btn-primary">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round" class="btn-icon">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                                <line x1="16" y1="13" x2="8" y2="13"></line>
+                                <line x1="16" y1="17" x2="8" y2="17"></line>
+                                <polyline points="10 9 9 9 8 9"></polyline>
+                            </svg>
+                            <span>Generate Report</span>
+                        </button>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Quick Filter Chips -->
+            <section class="filter-chips">
+                <button class="chip" data-filter="all">
+                    <span>All Zones</span>
+                </button>
+                <button class="chip" data-filter="underserved">
+                    <span>🟧 Underserved Areas</span>
+                </button>
+                <button class="chip" data-filter="normal">
+                    <span>🟦 Normal Coverage</span>
+                </button>
+            </section>
+
+            <section class="dashboard-grid">
+                <div class="card map-card">
+                    <div class="card-header">
+                        <h3>Mobility Failure & Coverage Hotspots</h3>
+                        <button id="fullscreenBtn" class="icon-btn" title="Toggle Focus Mode">
+                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"
+                                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div id="loadingState" class="loading-state">
+                        <div class="spinner"></div>
+                        <p>Loading map data...</p>
+                    </div>
+                    <div id="emptyState" class="empty-state" style="display: none;">
+                        <p>No zones match your current filters</p>
+                    </div>
+                    <div id="map"></div>
+
+                    <!-- Map Legend -->
+                    <div class="map-legend">
+                        <h4>Legend</h4>
+                        <div class="legend-item">
+                            <span class="legend-color" style="background: #58a6ff;"></span>
+                            <span>Normal Coverage</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-color" style="background: #f0883e;"></span>
+                            <span>Underserved Area</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card chart-card tabbed-card" id="chartCard">
+                    <div class="card-header">
+                        <div class="tabs">
+                            <button class="tab-btn active" data-tab="rush-hour">Rush Hour Analysis</button>
+                            <button class="tab-btn" data-tab="congestion">Congestion Index</button>
+                        </div>
+                    </div>
+                    <div class="tab-content">
+                        <div id="chartLoadingOverlay" class="loading-overlay hidden">
+                            <div class="spinner"></div>
+                        </div>
+                        <canvas id="mainChart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Borough Details Side Panel (Left) -->
+            <div id="boroughPanel" class="details-panel borough-panel">
+                <div class="panel-header">
+                    <h3 id="panelBoroughName">Borough Analysis</h3>
+                    <button id="closeBoroughPanelBtn" class="icon-btn">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"
+                            stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                </div>
+                <div class="panel-content" id="boroughPanelContent">
+                    <div class="panel-section">
+                        <p class="info-text">Select a borough from the dropdown to see detailed spatial analytics.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Details Side Panel (Right) -->
+            <div id="detailsPanel" class="details-panel">
+                <div class="panel-header">
+                    <h3 id="panelZoneName">Zone Details</h3>
+                    <button id="closePanelBtn" class="icon-btn">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"
+                            stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                </div>
+                <div class="panel-content">
+                    <div class="panel-section">
+                        <h4>Location</h4>
+                        <p id="panelBorough">-</p>
+                    </div>
+                    <div class="panel-section">
+                        <h4>Status</h4>
+                        <p id="panelStatus">-</p>
+                    </div>
+                    <div class="panel-section">
+                        <h4>Zone Information</h4>
+                        <p class="info-text">Click on any zone on the map to view detailed statistics and insights.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hover Tooltip -->
+            <div id="hoverTooltip" class="hover-tooltip"></div>
+        </div>
+    </main>
+
+    <!-- Report Modal -->
+    <div id="reportModal" class="modal">
+        <div class="modal-content report-paper">
+            <div class="report-header">
+                <div class="report-title-group">
+                    <h2>Urban Taxi Mobility Analyst</h2>
+                    <div id="reportMetadata" class="report-meta"></div>
+                </div>
+                <button id="closeReportBtn" class="close-report">✕</button>
+            </div>
+            <div id="reportScrollableBody" class="report-body">
+                <div class="report-section">
+                    <h3>Executive Summary</h3>
+                    <div id="reportSummary" class="report-summary-grid"></div>
+                </div>
+                <div class="report-section">
+                    <h3>Top zone performance</h3>
+                    <table id="reportTopZones">
+                        <thead>
+                            <tr>
+                                <th>Zone</th>
+                                <th>Borough</th>
+                                <th>Volume</th>
+                                <th>Avg Speed</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <div class="report-section">
+                    <h3>Rush Hour Performance</h3>
+                    <div id="reportRushHour" class="report-summary-grid">
+                        <!-- Placeholder for Peak Hour Metrics -->
+                    </div>
+                    <div class="report-chart-container" style="margin-top: 1.5rem; height: 250px;">
+                        <canvas id="reportRushHourChart"></canvas>
+                    </div>
+                    <div id="reportCongestionAlert" class="report-gaps-list" style="margin-top: 1rem;">
+
