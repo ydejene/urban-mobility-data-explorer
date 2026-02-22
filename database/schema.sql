@@ -76,3 +76,9 @@ CREATE TABLE IF NOT EXISTS users (
     password_hash TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- 7. Performance Indexes
+CREATE INDEX IF NOT EXISTS idx_trips_pickup_location ON trips(pickup_location_id);
+CREATE INDEX IF NOT EXISTS idx_trips_dropoff_location ON trips(dropoff_location_id);
+CREATE INDEX IF NOT EXISTS idx_trips_pickup_time ON trips(pickup_time_id);
+CREATE INDEX IF NOT EXISTS idx_trips_payment_type ON trips(payment_type_id);
