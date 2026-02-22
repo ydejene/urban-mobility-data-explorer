@@ -13,3 +13,9 @@ class DataLoader:
 
     def load(self):
         raise NotImplementedError("Subclasses must implement load()")
+
+class CSVLoader(DataLoader):
+    """Loads raw trip data or lookup tables from CSV"""
+    def load(self, chunksize=None):
+        print(f"Loading CSV from: {self.file_path}")
+        return pd.read_csv(self.file_path, chunksize=chunksize)
