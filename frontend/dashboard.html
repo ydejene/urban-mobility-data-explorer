@@ -1,0 +1,81 @@
+<!-- 
+  frontend\index.html
+  Main Dashboard Page: Structures the visual interface including the map, 
+  statistics bar, filter controls, and side panels for detailed analysis.
+-->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Urban Taxi Mobility Analyst</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Leaflet.js CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body class="dark-theme">
+    <header>
+        <div class="container">
+            <div class="header-top">
+                <h1>Urban Taxi Mobility Analyst</h1>
+                <div class="user-info">
+                    <span id="userDisplay" class="user-email"></span>
+                    <button id="logoutBtn" class="logout-btn">Logout</button>
+                </div>
+            </div>
+            <!-- Alert Banner for missing data -->
+            <div id="noDataAlert" class="no-data-alert hidden">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+                <span>No taxi activity found for this period. Try selecting dates in early January 2019.</span>
+            </div>
+
+            <div class="stats-bar">
+                <div class="stat-card loading">
+                    <h3>Total Trips</h3>
+                    <p id="totalTripsHeader">---</p>
+                </div>
+                <div class="stat-card loading">
+                    <h3>Total Passengers</h3>
+                    <p id="totalPassengersHeader">---</p>
+                </div>
+                <div class="stat-card loading">
+                    <h3>System Health Score</h3>
+                    <p id="systemHealth">---</p>
+                    <small>Integrity Rating</small>
+                </div>
+                <div class="stat-card loading">
+                    <h3>Avg mobility Speed</h3>
+                    <p id="avgMobilitySpeed">---</p>
+                </div>
+                <div class="stat-card" id="anomaliesCard">
+                    <div class="stat-header">
+                        <h3>Detected Noise</h3>
+                        <div class="diagnostic-info">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round" class="info-icon">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="12" y1="16" x2="12" y2="12"></line>
+                                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                            </svg>
+                            <div class="diagnostic-tooltip" id="anomalyTooltip">
+                                <div class="tooltip-item"><span>Speed Violations:</span> <strong
+                                        id="speedAnomCount">0</strong></div>
+                                <div class="tooltip-item"><span>Fare Mismatches:</span> <strong
+                                        id="fareAnomCount">0</strong></div>
+                            </div>
+                        </div>
+                    </div>
+                    <p id="totalAnomalies">0</p>
+                    <small>System Failures</small>
+                </div>
+            </div>
+        </div>
+    </header>
