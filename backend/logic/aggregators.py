@@ -146,5 +146,67 @@ class TripAggregator:
             }
         finally:
             conn.close() 
+ 
+    @staticmethod
+    def get_hourly_stats(filters):
+        """Calculates volume and speed per hour for Rush Hour identification"""
+        db_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'database', 'taxi_data.db')
+        conn = sqlite3.connect(db_path)
+        cur = conn.cursor()
+        try:
+            start_date = filters.get('start_date')
+            end_date = filters.get('end_date')
+            borough = filters.get('borough')
+            zone_id = filters.get('zone_id')
+            
+            where_clauses = []
+            params = []
+            join_str = ""
+            
+            if start_date:
+                where_clauses.append("pickup_date >= ?")
+                params.append(start_date)
+            if end_date:
+                where_clauses.append("pickup_date <= ?")
+                params.append(end_date)
+            
+            # Spatial Filtering
+            if zone_id:
+                where_clauses.append("pickup_location_id = ?")
+                params.append(zone_id)
+            elif borough and borough != 'all':
+                join_str = "JOIN taxi_zones z ON trips.pickup_location_id = z.location_id"
+                where_clauses.append("z.borough = ?")
+                params.append(borough)
 
+            where_str = f"WHERE {' AND '.join(where_clauses)}" if where_clauses else "" if where_clauses else ""
+            
+            query = f"""
+                SELECT 
+                    pickup_hour,
+                    COUNT(*) as trip_count,
+                    AVG(speed_mph) as avg_speed
+                FROM trips
+                {join_str}
+                {where_str}
+                GROUP BY pickup_hour
+                ORDER BY pickup_hour ASC
+            """
+            cur.execute(query, params)
+            rows = cur.fetchall()
+            
+            # Ensure all 24 hours are present
+            hourly_data = {h: {"trips": 0, "speed": 0} for h in range(24)}
+            for r in rows:
+                hour, count, speed = r
+                hourly_data[hour] = {"trips": count, "speed": round(speed or 0, 2)}
+            
+            return hourly_data
+        finally:
+            conn.close()
+
+    @staticmethod
+    def get_congestion_index():
+        """Legacy - now handled by get_global_summary to save scans"""
+        return {}
   
