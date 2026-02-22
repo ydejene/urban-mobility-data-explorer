@@ -359,5 +359,65 @@ class TripAggregator:
                         "trend": hourly_stats
                     }
                 }
-  
-   
+            
+            query = f"""
+                SELECT z.zone, z.borough, COUNT(*) as trip_count, AVG(speed_mph) as speed
+                FROM trips t
+                JOIN taxi_zones z ON t.pickup_location_id = z.location_id
+                {where_str}
+                GROUP BY 1, 2
+                ORDER BY trip_count DESC
+                LIMIT 5
+            """
+            cur.execute(query, params)
+            top_zones = [{"zone": r[0], "borough": r[1], "trips": r[2], "speed": round(r[3], 1)} for r in cur.fetchall()]
+            
+            # 3. Get Coverage Gaps for this specific scope
+            gaps = TripAggregator.get_coverage_gaps(filters)
+            
+            # 4. Rush Hour Analysis
+            hourly_stats = TripAggregator.get_hourly_stats(filters)
+            peak_hour = max(hourly_stats.items(), key=lambda x: x[1]['trips']) if hourly_stats else (0, {"trips": 0, "speed": 0})
+            
+            # Congestion Calculation (Only for Citywide/Borough scope per user preference)
+            congestion_impact = None
+            if summary_data['summary']['avgSpeed'] > 0:
+                congestion_impact = round(((peak_hour[1]['speed'] / summary_data['summary']['avgSpeed'] * 100) - 100), 1)
+
+            # 5. Integrate extra Borough metadata if applicable
+            borough_data = {}
+            if borough and borough != 'all':
+                b_stats = TripAggregator.get_borough_stats(borough, filters)
+                borough_data = {
+                    "totalTrips": b_stats['totalTrips'],
+                    "avgSpeed": b_stats['avgSpeed'],
+                    "avgDistance": b_stats['avgDistance'],
+                    "zoneCount": b_stats['zoneCount'],
+                    "dropoffPassengers": b_stats['dropoffPassengers'],
+                    "pickupPassengers": b_stats['pickupPassengers'],
+                    "totalPassengers": b_stats['totalPassengers'],
+                    "underservedCount": b_stats['underservedCount'],
+                    "underservedZones": b_stats['underservedZones']
+                }
+
+            return {
+                "metadata": {
+                    "generatedAt": time.strftime("%Y-%m-%d %H:%M:%S"),
+                    "scope": borough if borough != 'all' else "Citywide",
+                    "period": f"{filters.get('start_date', 'All')} to {filters.get('end_date', 'All')}",
+                    "boroughMetadata": borough_data,
+                    "isCitywide": borough == 'all'
+                },
+                "summary": summary_data['summary'],
+                "topZones": top_zones,
+                "coverageGaps": gaps,
+                "rushHour": {
+                    "hour": peak_hour[0],
+                    "trips": peak_hour[1]['trips'],
+                    "avgSpeed": peak_hour[1]['speed'],
+                    "congestionImpact": congestion_impact if borough == 'all' else None,
+                    "trend": hourly_stats
+                }
+            }
+        finally:
+            conn.close()
