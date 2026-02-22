@@ -50,4 +50,12 @@ CREATE TABLE IF NOT EXISTS trips (
     pickup_time_id INTEGER,
     dropoff_time_id INTEGER,
 
+    -- Derived Features
+    speed_mph REAL,
+    fare_per_mile REAL,
+    trip_duration_seconds INTEGER,
+    pickup_date TEXT, -- YYYY-MM-DD for fast date filtering
+    pickup_hour INTEGER, -- 0-23 for rush hour analysis
+    
+
 );
