@@ -13,3 +13,13 @@ class DataCleaner:
         
         df = df[df['fare_amount'] >= 0]
         df = df[df['total_amount'] >= 0]
+
+        df = df[df['trip_distance'] > 0]
+        
+        if 'passenger_count' in df.columns:
+            df = df[df['passenger_count'] > 0]
+
+        df = df.dropna(subset=['PULocationID', 'DOLocationID', 'tpep_pickup_datetime'])
+        
+        logger.info(f"Cleaning complete. Reduced rows from {initial_count} to {len(df)}.")
+        return df
