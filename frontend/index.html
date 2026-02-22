@@ -85,6 +85,50 @@
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
         }
 
+        .auth-button {
+            width: 100%;
+            padding: 0.8rem;
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 60%, #4f46e5 100%);
+            color: white;
+            border: none;
+            border-radius: 0.625rem;
+            font-size: 1rem;
+            font-weight: 700;
+            letter-spacing: 0.025em;
+            cursor: pointer;
+            margin-top: 1rem;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.35);
+        }
+
+        .auth-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -75%;
+            width: 50%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.18);
+            transform: skewX(-20deg);
+            transition: left 0.5s ease;
+        }
+
+        .auth-button:hover::before {
+            left: 130%;
+        }
+
+        .auth-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(59, 130, 246, 0.5);
+        }
+
+        .auth-button:active {
+            transform: translateY(0);
+            box-shadow: 0 3px 10px rgba(59, 130, 246, 0.3);
+        }
+
 
     </style>
 </head>
