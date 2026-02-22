@@ -1,10 +1,17 @@
+<!-- 
+  frontend\signup.html
+  Signup Page: Allows new users to create an account by providing an 
+  email and creating a password.
+-->
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign Up - NYC Taxi Dashboard</title>
-    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
             display: flex;
@@ -13,7 +20,7 @@
             height: 100vh;
             background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
             margin: 0;
-            font-family: Arial, sans-serif;
+            font-family: 'Inter', sans-serif;
             color: white;
         }
 
@@ -28,11 +35,19 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
+        .auth-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
         .auth-header h1 {
             font-size: 1.875rem;
             font-weight: 700;
             margin-bottom: 0.5rem;
-            color: #FFC107;
+            background: linear-gradient(to right, #10b981, #3b82f6);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
         .auth-header p {
@@ -60,30 +75,58 @@
             border-radius: 0.5rem;
             color: white;
             font-size: 1rem;
+            transition: all 0.2s;
             box-sizing: border-box;
         }
 
         .form-group input:focus {
             outline: none;
-            border-color: #FFC107;
-            box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.2);
+            border-color: #10b981;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
         }
 
         .auth-button {
             width: 100%;
-            padding: 0.75rem;
-            background: #FFC107;
-            color: #1a1a1a;
+            padding: 0.8rem;
+            background: linear-gradient(135deg, #10b981 0%, #059669 60%, #0d9488 100%);
+            color: white;
             border: none;
-            border-radius: 0.5rem;
+            border-radius: 0.625rem;
             font-size: 1rem;
-            font-weight: 600;
+            font-weight: 700;
+            letter-spacing: 0.025em;
             cursor: pointer;
             margin-top: 1rem;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.35);
+        }
+
+        .auth-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -75%;
+            width: 50%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.18);
+            transform: skewX(-20deg);
+            transition: left 0.5s ease;
+        }
+
+        .auth-button:hover::before {
+            left: 130%;
         }
 
         .auth-button:hover {
-            background: #FFB300;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(16, 185, 129, 0.45);
+        }
+
+        .auth-button:active {
+            transform: translateY(0);
+            box-shadow: 0 3px 10px rgba(16, 185, 129, 0.3);
         }
 
         .auth-footer {
@@ -93,10 +136,32 @@
             color: #94a3b8;
         }
 
-        .auth-footer a {
-            color: #FFC107;
+        .signin-btn {
+            display: inline-block;
+            margin-top: 0.75rem;
+            width: 100%;
+            padding: 0.7rem;
+            background: transparent;
+            color: #10b981;
+            border: 1.5px solid rgba(16, 185, 129, 0.5);
+            border-radius: 0.625rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            cursor: pointer;
             text-decoration: none;
-            font-weight: 500;
+            text-align: center;
+            box-sizing: border-box;
+            transition: all 0.25s ease;
+            backdrop-filter: blur(4px);
+        }
+
+        .signin-btn:hover {
+            background: rgba(16, 185, 129, 0.12);
+            border-color: #10b981;
+            color: #34d399;
+            box-shadow: 0 0 16px rgba(16, 185, 129, 0.2);
+            transform: translateY(-1px);
         }
 
         .error-message {
@@ -122,6 +187,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="auth-container">
         <div class="auth-header">
@@ -142,7 +208,8 @@
             <button type="submit" class="auth-button">Sign Up</button>
         </form>
         <div class="auth-footer">
-            Already have an account? <a href="login.html">Sign In</a>
+            Already have an account?<br>
+            <a href="index.html" class="signin-btn">Sign In</a>
         </div>
     </div>
 
@@ -167,9 +234,7 @@
                     successElement.textContent = 'Account created! Redirecting to login...';
                     successElement.style.display = 'block';
                     errorElement.style.display = 'none';
-                    setTimeout(() => {
-                        window.location.href = 'login.html';
-                    }, 2000);
+                    window.location.href = 'index.html';
                 } else {
                     errorElement.textContent = data.error || 'Signup failed';
                     errorElement.style.display = 'block';
@@ -182,4 +247,5 @@
         });
     </script>
 </body>
+
 </html>
