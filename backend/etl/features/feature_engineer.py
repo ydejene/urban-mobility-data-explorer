@@ -9,3 +9,6 @@ class FeatureEngineer:
         """Adds time-based dimension features"""
         df['tpep_pickup_datetime'] = pd.to_datetime(df['tpep_pickup_datetime'])
         df['tpep_dropoff_datetime'] = pd.to_datetime(df['tpep_dropoff_datetime'])
+
+        # Calculate duration in seconds
+        df['trip_duration_seconds'] = (df['tpep_dropoff_datetime'] - df['tpep_pickup_datetime']).dt.total_seconds()
