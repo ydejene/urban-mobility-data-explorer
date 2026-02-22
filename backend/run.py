@@ -206,3 +206,45 @@ def get_borough_stats(borough):
         return jsonify(data)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@app.route('/api/report', methods=['GET'])
+def get_report():
+    """Returns detailed diagnostic report data"""
+    try:
+        from backend.logic.aggregators import TripAggregator
+        filters = {
+            "start_date": request.args.get('start_date'),
+            "end_date": request.args.get('end_date'),
+            "borough": request.args.get('borough', 'all'),
+            "zone_id": request.args.get('zone_id')
+        }
+        data = TripAggregator.get_detailed_report(filters)
+        return jsonify(data)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/zones', methods=['GET'])
+def get_zones():
+    """Returns spatial data for the map"""
+    try:
+        # We can reuse the DAL or call it directly
+        from backend.dal.trip_dal import TripDAL
+        db_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'database', 'taxi_data.db')
+        dal = TripDAL(db_path)
+        
+        conn = sqlite3.connect(db_path, timeout=30)
+        cur = conn.cursor()
+        cur.execute("SELECT location_id, borough, zone, geojson FROM taxi_zones")
+        rows = cur.fetchall()
+        
+        zones = []
+        for r in rows:
+            zones.append({
+                "id": r[0],
+                "borough": r[1],
+                "zone": r[2],
+                "geometry": json.loads(r[3]) if r[3] else None
+            })
+        return jsonify(zones)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
