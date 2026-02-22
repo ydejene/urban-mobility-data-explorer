@@ -33,3 +33,16 @@ from backend.security.auth_logic import AuthLogic
 
 app = Flask(__name__)
 CORS(app) # Enable CORS for frontend integration
+
+# Serve Frontend
+@app.route('/')
+def index():
+    return send_from_directory(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'frontend'), 'index.html')
+
+@app.route('/dashboard')
+def dashboard():
+    return send_from_directory(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'frontend'), 'dashboard.html')
+
+@app.route('/<path:path>')
+def serve_static(path):
+    return send_from_directory(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'frontend'), path)
