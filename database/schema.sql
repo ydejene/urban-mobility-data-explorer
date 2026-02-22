@@ -19,3 +19,11 @@ logging.basicConfig(
     ]
 )
 logger = logging.getLogger("ETL-Pipeline")
+
+# Add project root to path for imports
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from etl.ingestion.loaders import CSVLoader, ShapefileLoader
+from etl.processing.cleaner import DataCleaner
+from etl.features.feature_engineer import FeatureEngineer
+from dal.trip_dal import TripDAL
