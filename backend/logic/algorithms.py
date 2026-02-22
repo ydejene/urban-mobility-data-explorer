@@ -20,3 +20,13 @@ class AnomalyDetector:
         zone_speeds = trips_df.groupby('pickup_location_id')['speed_mph'].mean()
         choke_points = zone_speeds[zone_speeds < speed_threshold]
         return choke_points
+    
+    @staticmethod
+    def detect_speed_anomalies(trips_df, threshold_mph=80):
+        anomalies = trips_df[trips_df['speed_mph'] > threshold_mph]
+        return anomalies
+
+    @staticmethod
+    def detect_fare_anomalies(trips_df):
+        anomalies = trips_df[(trips_df['trip_distance'] < 1) & (trips_df['fare_amount'] > 100)]
+        return anomalies
