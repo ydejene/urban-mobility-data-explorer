@@ -1,47 +1,89 @@
-# backend\etl\pipeline.py
-# ETL Pipeline Orchestrator: Coordinates the full data lifecycle from ingestion and cleaning to feature engineering and storage.
+-- database\schema.sql
+-- NYC Taxi Urban Mobility Explorer: Full Database Schema based on Finalized ERD.
+-- Defines tables for trips, zones, time dimensions, and users, along with performance indexes.
 
-import os
-import sys
-import logging
+-- 1. Create Dimension: PAYMENT_TYPES
+CREATE TABLE IF NOT EXISTS payment_types (
+    payment_id INTEGER PRIMARY KEY,
+    payment_name TEXT NOT NULL
+);
 
-# Configure Logging for ETL
-log_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'data', 'logs')
-if not os.path.exists(log_dir):
-    os.makedirs(log_dir)
+-- 2. Create Dimension: TAXI_ZONES
+CREATE TABLE IF NOT EXISTS taxi_zones (
+    location_id INTEGER PRIMARY KEY,
+    borough TEXT,
+    zone TEXT,
+    service_zone TEXT,
+    geojson TEXT -- Stores the spatial polygon data for the map
+);
 
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler(os.path.join(log_dir, 'etl.log')),
-        logging.StreamHandler()
-    ]
-)
-logger = logging.getLogger("ETL-Pipeline")
+-- 3. Create Dimension: TIME_DIM
+CREATE TABLE IF NOT EXISTS time_dim (
+    time_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    datetime TIMESTAMP NOT NULL,
+    hour INTEGER,
+    day_of_week INTEGER,
+    day_of_month INTEGER,
+    month INTEGER,
+    year INTEGER,
+    is_weekend BOOLEAN
+);
 
-# Add project root to path for imports
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+-- 4. Create Fact Table: TRIPS
+CREATE TABLE IF NOT EXISTS trips (
+    trip_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    vendor_id INTEGER,
+    passenger_count INTEGER,
+    trip_distance REAL,
+    rate_code_id INTEGER,
+    payment_type_id INTEGER,
+    fare_amount REAL,
+    extra REAL,
+    mta_tax REAL,
+    tip_amount REAL,
+    pickup_location_id INTEGER,
+    dropoff_location_id INTEGER,
+    tolls_amount REAL,
+    improvement_surcharge REAL,
+    total_amount REAL,
+    congestion_surcharge REAL,
+    pickup_time_id INTEGER,
+    dropoff_time_id INTEGER,
 
-from etl.ingestion.loaders import CSVLoader, ShapefileLoader
-from etl.processing.cleaner import DataCleaner
-from etl.features.feature_engineer import FeatureEngineer
-from dal.trip_dal import TripDAL
+    -- Derived Features
+    speed_mph REAL,
+    fare_per_mile REAL,
+    trip_duration_seconds INTEGER,
+    pickup_date TEXT, -- YYYY-MM-DD for fast date filtering
+    pickup_hour INTEGER, -- 0-23 for rush hour analysis
 
-def run_pipeline():
-    # 1. Setup paths
-    base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    raw_data_path = os.path.join(base_dir, 'data', 'yellow_tripdata_2019-01.csv')
-    shp_path = os.path.join(base_dir, 'data', 'taxi_zones', 'taxi_zones.shp')
-    db_path = os.path.join(base_dir, 'database', 'taxi_data.db')
-    
-    dal = TripDAL(db_path)
+    -- Metadata
+    store_and_fwd_flag BOOLEAN,
 
-    # 2. Process Zones (Dimension Table)
-    logger.info("--- Processing Taxi Zones ---")
-    zone_loader = ShapefileLoader(shp_path)
-    zones = zone_loader.load()
-    if zones:
-        clean_zones = DataCleaner.clean_zone_data(zones)
-        dal.insert_zones(clean_zones)
+    -- Foreign Key Constraints
+    FOREIGN KEY (payment_type_id) REFERENCES payment_types(payment_id),
+    FOREIGN KEY (pickup_location_id) REFERENCES taxi_zones(location_id),
+    FOREIGN KEY (dropoff_location_id) REFERENCES taxi_zones(location_id),
+    FOREIGN KEY (pickup_time_id) REFERENCES time_dim(time_id),
+    FOREIGN KEY (dropoff_time_id) REFERENCES time_dim(time_id)
 
+);
+
+-- 6. Authentication: USERS
+CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    email TEXT UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 7. Performance Indexes
+CREATE INDEX IF NOT EXISTS idx_trips_pickup_location ON trips(pickup_location_id);
+CREATE INDEX IF NOT EXISTS idx_trips_dropoff_location ON trips(dropoff_location_id);
+CREATE INDEX IF NOT EXISTS idx_trips_pickup_time ON trips(pickup_time_id);
+CREATE INDEX IF NOT EXISTS idx_trips_payment_type ON trips(payment_type_id);
+CREATE INDEX IF NOT EXISTS idx_trips_speed ON trips(speed_mph);
+CREATE INDEX IF NOT EXISTS idx_trips_total_amount ON trips(total_amount);
+CREATE INDEX IF NOT EXISTS idx_time_dim_hour ON time_dim(hour);
+CREATE INDEX IF NOT EXISTS idx_trips_pickup_date ON trips(pickup_date);
+CREATE INDEX IF NOT EXISTS idx_trips_pickup_hour ON trips(pickup_hour);
