@@ -314,3 +314,47 @@
                 </div>
             </div>
 
+            <!-- Hover Tooltip -->
+            <div id="hoverTooltip" class="hover-tooltip"></div>
+        </div>
+    </main>
+
+    <!-- Report Modal -->
+    <div id="reportModal" class="modal">
+        <div class="modal-content report-paper">
+            <div class="report-header">
+                <div class="report-title-group">
+                    <h2>Urban Taxi Mobility Analyst</h2>
+                    <div id="reportMetadata" class="report-meta"></div>
+                </div>
+                <button id="closeReportBtn" class="close-report">✕</button>
+            </div>
+            <div id="reportScrollableBody" class="report-body">
+                <div class="report-section">
+                    <h3>Executive Summary</h3>
+                    <div id="reportSummary" class="report-summary-grid"></div>
+                </div>
+                <div class="report-section">
+                    <h3>Top zone performance</h3>
+                    <table id="reportTopZones">
+                        <thead>
+                            <tr>
+                                <th>Zone</th>
+                                <th>Borough</th>
+                                <th>Volume</th>
+                                <th>Avg Speed</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <div class="report-section">
+                    <h3>Rush Hour Performance</h3>
+                    <div id="reportRushHour" class="report-summary-grid">
+                        <!-- Placeholder for Peak Hour Metrics -->
+                    </div>
+                    <div class="report-chart-container" style="margin-top: 1.5rem; height: 250px;">
+                        <canvas id="reportRushHourChart"></canvas>
+                    </div>
+                    <div id="reportCongestionAlert" class="report-gaps-list" style="margin-top: 1rem;">
+
