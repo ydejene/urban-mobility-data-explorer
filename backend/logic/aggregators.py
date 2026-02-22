@@ -209,4 +209,51 @@ class TripAggregator:
     def get_congestion_index():
         """Legacy - now handled by get_global_summary to save scans"""
         return {}
+    
+    @staticmethod
+    def get_coverage_gaps(filters=None):
+        """Identifies underserviced neighborhoods (Optimized with filter support)"""
+        db_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'database', 'taxi_data.db')
+        conn = sqlite3.connect(db_path)
+        cur = conn.cursor()
+        try:
+            date_clauses = []
+            date_params = []
+            borough_val = None
+            
+            if filters:
+                if filters.get('start_date'):
+                    date_clauses.append("pickup_date >= ?")
+                    date_params.append(filters['start_date'])
+                if filters.get('end_date'):
+                    date_clauses.append("pickup_date <= ?")
+                    date_params.append(filters['end_date'])
+                if filters.get('borough') and filters.get('borough') != 'all':
+                    borough_val = filters['borough']
+            
+            date_where = f"WHERE {' AND '.join(date_clauses)}" if date_clauses else ""
+            
+            # Reconstruct query to be robust: Dates in CTEs, Borough in main Join
+            query = f"""
+                WITH PU AS (SELECT pickup_location_id as loc, COUNT(*) as cnt FROM trips {date_where} GROUP BY 1),
+                     DO AS (SELECT dropoff_location_id as loc, COUNT(*) as cnt FROM trips {date_where} GROUP BY 1)
+                SELECT z.zone, z.borough, DO.cnt, PU.cnt, z.location_id
+                FROM DO
+                LEFT JOIN PU ON DO.loc = PU.loc
+                JOIN taxi_zones z ON DO.loc = z.location_id
+                WHERE (DO.cnt * 1.0 / NULLIF(PU.cnt, 0)) > 2.0
+                { "AND z.borough = ?" if borough_val else "" }
+                ORDER BY (DO.cnt * 1.0 / NULLIF(PU.cnt, 0)) DESC
+                LIMIT 5
+            """
+            
+            final_params = date_params + date_params
+            if borough_val:
+                final_params.append(borough_val)
+
+            cur.execute(query, final_params)
+            rows = cur.fetchall()
+            return [{"zone": r[0], "borough": r[1], "ratio": round(r[2]/r[3], 2), "id": r[4]} for r in rows if r[3]]
+        finally:
+            conn.close()
   
