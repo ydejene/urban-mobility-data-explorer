@@ -57,6 +57,9 @@ CREATE TABLE IF NOT EXISTS trips (
     pickup_date TEXT, -- YYYY-MM-DD for fast date filtering
     pickup_hour INTEGER, -- 0-23 for rush hour analysis
 
+    -- Metadata
+    store_and_fwd_flag BOOLEAN,
+
     -- Foreign Key Constraints
     FOREIGN KEY (payment_type_id) REFERENCES payment_types(payment_id),
     FOREIGN KEY (pickup_location_id) REFERENCES taxi_zones(location_id),
