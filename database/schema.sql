@@ -27,3 +27,12 @@ from etl.ingestion.loaders import CSVLoader, ShapefileLoader
 from etl.processing.cleaner import DataCleaner
 from etl.features.feature_engineer import FeatureEngineer
 from dal.trip_dal import TripDAL
+
+def run_pipeline():
+    # 1. Setup paths
+    base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    raw_data_path = os.path.join(base_dir, 'data', 'yellow_tripdata_2019-01.csv')
+    shp_path = os.path.join(base_dir, 'data', 'taxi_zones', 'taxi_zones.shp')
+    db_path = os.path.join(base_dir, 'database', 'taxi_data.db')
+    
+    dal = TripDAL(db_path)
