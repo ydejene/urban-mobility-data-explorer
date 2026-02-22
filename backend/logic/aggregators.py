@@ -83,6 +83,68 @@ class TripAggregator:
                 s['speed_anom'] += speed_anom
                 s['fare_anom'] += fare_anom
                 s['f_sum'] += f_sum
-                s['f_count'] += f_count        
+                s['f_count'] += f_count    
+
+                
+            # Final Calculations
+            global_trips = 0
+            global_fare = 0
+            global_rev = 0
+            global_dist = 0
+            global_speed_sum = 0
+            global_passengers = 0
+            global_speed_anom = 0
+            global_fare_anom = 0
+            global_f_sum = 0
+            global_f_count = 0
+            choke_points = 0
+        
+            congestion_index = {}
+
+            for b_name, s in borough_data.items():
+                avg_b_speed = s['f_sum'] / max(s['f_count'], 1)
+                congestion_index[b_name] = round(20 / avg_b_speed, 2) if avg_b_speed > 0 else 0
+                
+                if not selected_borough or b_name == selected_borough:
+                    global_trips += s['trips']
+                    global_fare += s['fare']
+                    global_rev += s['rev']
+                    global_dist += s['dist']
+                    global_speed_sum += s['speed']
+                    global_passengers += s['pass']
+                    global_speed_anom += s['speed_anom']
+                    global_fare_anom += s['fare_anom']
+                    global_f_sum += s['f_sum']
+                    global_f_count += s['f_count']
+            
+            # Choke points calculated from the already grouped data
+            for loc_id, r in zip(loc_to_borough.keys(), rows):
+                avg_loc_speed = r[5] / max(r[1], 1)
+                if 0 < avg_loc_speed < 4.5:
+                    choke_points += 1
+
+            reliability_score = round(((global_trips - (global_speed_anom + global_fare_anom)) / max(global_trips, 1)) * 100, 4)
+            
+            return {
+                "summary": {
+                    "totalTrips": global_trips,
+                    "totalPassengers": global_passengers,
+                    "avgFare": round(global_fare / max(global_trips, 1), 2) if global_trips > 0 else 0,
+                    "totalRevenue": round(global_rev, 2),
+                    "avgDistance": round(global_dist / max(global_trips, 1), 2) if global_trips > 0 else 0,
+                    "avgSpeed": round(global_speed_sum / max(global_trips, 1), 2) if global_trips > 0 else 0,
+                    "systemHealth": reliability_score,
+                    "avgMobilitySpeed": round(global_f_sum / max(global_f_count, 1), 1) if global_f_count > 0 else 0,
+                    "totalAnomalies": global_speed_anom + global_fare_anom,
+                    "activeChokePoints": choke_points,
+                    "anomalyDetails": {
+                        "speed": global_speed_anom,
+                        "fare": global_fare_anom
+                    }
+                },
+                "congestion": congestion_index
+            }
+        finally:
+            conn.close() 
 
   
