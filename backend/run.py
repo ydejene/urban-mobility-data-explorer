@@ -248,3 +248,116 @@ def get_zones():
         return jsonify(zones)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@app.route('/api/zones/<int:zone_id>/stats', methods=['GET'])
+def get_zone_stats(zone_id):
+    """Returns detailed statistics for a specific zone"""
+    try:
+        db_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'database', 'taxi_data.db')
+        conn = sqlite3.connect(db_path, timeout=30)
+        cur = conn.cursor()
+        
+        # Get zone info
+        cur.execute("SELECT zone, borough FROM taxi_zones WHERE location_id = ?", (zone_id,))
+        zone_info = cur.fetchone()
+        
+        if not zone_info:
+            return jsonify({"error": "Zone not found"}), 404
+        
+        zone_name, borough = zone_info
+        
+        start_date = request.args.get('start_date')
+        end_date = request.args.get('end_date')
+        where_clauses = ["pickup_location_id = ?"]
+        params = [zone_id]
+        
+        if start_date:
+            where_clauses.append("pickup_date >= ?")
+            params.append(start_date)
+        if end_date:
+            where_clauses.append("pickup_date <= ?")
+            params.append(end_date)
+        
+        where_str = f"WHERE {' AND '.join(where_clauses)}"
+        cur.execute(f"""
+            SELECT 
+                COUNT(*) as trip_count,
+                AVG(trip_distance) as avg_distance,
+                AVG(speed_mph) as avg_speed,
+                AVG(fare_amount) as avg_fare,
+                AVG(trip_duration_seconds) as avg_duration,
+                SUM(passenger_count) as total_passengers
+            FROM trips
+            {where_str}
+        """, params)
+        
+        pickup_stats = cur.fetchone()
+        
+        do_where_clauses = ["dropoff_location_id = ?"]
+        do_params = [zone_id]
+        if start_date:
+            do_where_clauses.append("pickup_date >= ?")
+            do_params.append(start_date)
+        if end_date:
+            do_where_clauses.append("pickup_date <= ?")
+            do_params.append(end_date)
+        do_where_str = f"WHERE {' AND '.join(do_where_clauses)}"
+
+        cur.execute(f"""
+            SELECT 
+                COUNT(*) as dropoff_count,
+                SUM(passenger_count) as dropoff_passengers
+            FROM trips
+            {do_where_str}
+        """, do_params)
+        
+        dropoff_res = cur.fetchone()
+        dropoff_count = dropoff_res[0] or 0
+        dropoff_passengers = dropoff_res[1] or 0
+        
+        b_where_clauses = ["z.borough = ?"]
+        b_params = [borough]
+        if start_date:
+            b_where_clauses.append("t.pickup_date >= ?")
+            b_params.append(start_date)
+        if end_date:
+            b_where_clauses.append("t.pickup_date <= ?")
+            b_params.append(end_date)
+        b_where_str = f"WHERE {' AND '.join(b_where_clauses)}"
+
+        cur.execute(f"""
+            SELECT AVG(t.speed_mph) as borough_avg_speed
+            FROM trips t
+            JOIN taxi_zones z ON t.pickup_location_id = z.location_id
+            {b_where_str}
+        """, b_params)
+        
+        borough_avg = cur.fetchone()[0] or 0
+        
+        # Calculate coverage ratio
+        pickup_count = pickup_stats[0] or 0
+        pickup_passengers = pickup_stats[5] or 0
+        coverage_ratio = round(dropoff_count / pickup_count, 2) if pickup_count > 0 else 0
+        
+        stats = {
+            "zone": zone_name,
+            "borough": borough,
+            "pickupCount": pickup_count,
+            "dropoffCount": dropoff_count,
+            "coverageRatio": coverage_ratio,
+            "pickupPassengers": pickup_passengers,
+            "dropoffPassengers": dropoff_passengers,
+            "totalPassengers": pickup_passengers + dropoff_passengers,
+            "avgDistance": round(pickup_stats[1], 2) if pickup_stats[1] else 0,
+            "avgSpeed": round(pickup_stats[2], 2) if pickup_stats[2] else 0,
+            "avgFare": round(pickup_stats[3], 2) if pickup_stats[3] else 0,
+            "avgDuration": round(pickup_stats[4] / 60, 1) if pickup_stats[4] else 0,  # Convert to minutes
+            "boroughAvgSpeed": round(borough_avg, 2),
+            "speedComparison": round(((pickup_stats[2] or 0) / borough_avg * 100) - 100, 1) if borough_avg > 0 else 0
+        }
+        
+        conn.close()
+        return jsonify(stats)
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
