@@ -26,9 +26,16 @@ class FeatureEngineer:
         """Calculates speed and financial ratios"""
         
         # 1. Average Speed (MPH)
-        # Avoid division by zero: trips with 0 duration were cleaned ealier, but be safe
         duration_hours = df['trip_duration_seconds'] / 3600
         df['speed_mph'] = np.where(duration_hours > 0, df['trip_distance'] / duration_hours, 0)
         
         # 2. Fare per Mile
         df['fare_per_mile'] = np.where(df['trip_distance'] > 0, df['fare_amount'] / df['trip_distance'], 0)
+
+        # 3. Tip Percentage
+        df['tip_percentage'] = np.where(df['fare_amount'] > 0, (df['tip_amount'] / df['fare_amount']) * 100, 0)
+        
+        # Cap outliers (e.g., speed > 100mph) - often data entry errors
+        df.loc[df['speed_mph'] > 100, 'speed_mph'] = np.nan
+        
+        return df
