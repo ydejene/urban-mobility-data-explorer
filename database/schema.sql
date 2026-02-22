@@ -82,3 +82,8 @@ CREATE INDEX IF NOT EXISTS idx_trips_pickup_location ON trips(pickup_location_id
 CREATE INDEX IF NOT EXISTS idx_trips_dropoff_location ON trips(dropoff_location_id);
 CREATE INDEX IF NOT EXISTS idx_trips_pickup_time ON trips(pickup_time_id);
 CREATE INDEX IF NOT EXISTS idx_trips_payment_type ON trips(payment_type_id);
+CREATE INDEX IF NOT EXISTS idx_trips_speed ON trips(speed_mph);
+CREATE INDEX IF NOT EXISTS idx_trips_total_amount ON trips(total_amount);
+CREATE INDEX IF NOT EXISTS idx_time_dim_hour ON time_dim(hour);
+CREATE INDEX IF NOT EXISTS idx_trips_pickup_date ON trips(pickup_date);
+CREATE INDEX IF NOT EXISTS idx_trips_pickup_hour ON trips(pickup_hour);
