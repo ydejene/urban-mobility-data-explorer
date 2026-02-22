@@ -33,7 +33,7 @@ def run_pipeline():
     base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     raw_data_path = os.path.join(base_dir, 'data', 'yellow_tripdata_2019-01.csv')
     shp_path = os.path.join(base_dir, 'data', 'taxi_zones', 'taxi_zones.shp')
-    db_path = .path.join(base_dir, 'database', 'taxi_data.db')
+    db_path = os.path.join(base_dir, 'database', 'taxi_data.db')
     
     dal = TripDAL(db_path)
 
