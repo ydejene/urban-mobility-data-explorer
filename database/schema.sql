@@ -28,3 +28,24 @@ CREATE TABLE IF NOT EXISTS time_dim (
     year INTEGER,
     is_weekend BOOLEAN
 );
+
+-- 4. Create Fact Table: TRIPS
+CREATE TABLE IF NOT EXISTS trips (
+    trip_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    vendor_id INTEGER,
+    passenger_count INTEGER,
+    trip_distance REAL,
+    rate_code_id INTEGER,
+    payment_type_id INTEGER,
+    fare_amount REAL,
+    extra REAL,
+    mta_tax REAL,
+    tip_amount REAL,
+    pickup_location_id INTEGER,
+    dropoff_location_id INTEGER,
+    tolls_amount REAL,
+    improvement_surcharge REAL,
+    total_amount REAL,
+    congestion_surcharge REAL,
+    pickup_time_id INTEGER,
+    dropoff_time_id INTEGER,
