@@ -421,3 +421,71 @@ class TripAggregator:
             }
         finally:
             conn.close()
+     
+    @staticmethod
+    def get_borough_stats(borough, filters=None):
+        """Calculates comprehensive stats for a specific borough"""
+        db_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'database', 'taxi_data.db')
+        conn = sqlite3.connect(db_path)
+        cur = conn.cursor()
+        
+        is_citywide = borough == "all"
+        where_clauses = []
+        if not is_citywide:
+            where_clauses.append("pickup_location_id IN (SELECT location_id FROM taxi_zones WHERE borough = ?)")
+        params = [borough] if not is_citywide else []
+        
+        if filters:
+            if filters.get('start_date'):
+                where_clauses.append("pickup_date >= ?")
+                params.append(filters['start_date'])
+            if filters.get('end_date'):
+                where_clauses.append("pickup_date <= ?")
+                params.append(filters['end_date'])
+        
+        where_str = f"WHERE {' AND '.join(where_clauses)}" if where_clauses else ""
+        
+        try:
+            # 1. Main Stats
+            query_1 = f"""
+                SELECT 
+                    COUNT(*) as total_trips,
+                    AVG(speed_mph) as avg_speed,
+                    AVG(trip_distance) as avg_distance,
+                    SUM(passenger_count) as pickup_passengers
+                FROM trips t
+                {where_str}
+            """
+            cur.execute(query_1, params)
+            res = cur.fetchone() or (0, 0, 0, 0)
+            total_trips, avg_speed, avg_distance, pickup_passengers = res[:4]
+
+            # 2. Inbound Passengers (Drop-offs)
+            where_do = []
+            if not is_citywide:
+                where_do.append("dropoff_location_id IN (SELECT location_id FROM taxi_zones WHERE borough = ?)")
+            params_do = [borough] if not is_citywide else []
+            if filters:
+                if filters.get('start_date'):
+                    where_do.append("pickup_date >= ?")
+                    params_do.append(filters['start_date'])
+                if filters.get('end_date'):
+                    where_do.append("pickup_date <= ?")
+                    params_do.append(filters['end_date'])
+            
+            where_do_str = f"WHERE {' AND '.join(where_do)}" if where_do else ""
+            cur.execute(f"SELECT SUM(passenger_count) FROM trips {where_do_str}", params_do)
+            dropoff_passengers = cur.fetchone()[0] or 0
+
+            # 3. Top 3 Zones in this Borough
+            query_3 = f"""
+                SELECT z.zone, COUNT(*) as trip_count
+                FROM trips t
+                JOIN taxi_zones z ON t.pickup_location_id = z.location_id
+                {where_str}
+                GROUP BY z.zone
+                ORDER BY trip_count DESC
+                LIMIT 3
+            """
+            cur.execute(query_3, params)
+            top_zones = [{"zone": r[0], "trips": r[1]} for r in cur.fetchall()]
