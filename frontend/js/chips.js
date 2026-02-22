@@ -1,37 +1,66 @@
-// Filter chips functionality
+// Quick filter chips functionality
 document.addEventListener('DOMContentLoaded', () => {
-    const chips = document.querySelectorAll('.chip');
-    const boroughSelect = document.getElementById('borough-select');
+    const emptyState = document.getElementById('emptyState');
+    let activeFilter = 'all';
     
-    chips.forEach(chip => {
+    // Get coverage gaps from global scope
+    function getGapZones() {
+        return window.gapZones || [];
+    }
+
+    // Filter chips
+    document.querySelectorAll('.chip').forEach(chip => {
         chip.addEventListener('click', () => {
-            // Remove active class from all chips
-            chips.forEach(c => c.classList.remove('active'));
-            
-            // Add active class to clicked chip
+            document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
             chip.classList.add('active');
-            
-            // Get filter value
-            const filter = chip.dataset.filter;
-            
-            // Update borough select to match
-            if (boroughSelect) {
-                if (filter === 'all') {
-                    boroughSelect.value = 'all';
-                } else if (filter === 'manhattan') {
-                    boroughSelect.value = 'Manhattan';
-                } else if (filter === 'brooklyn') {
-                    boroughSelect.value = 'Brooklyn';
-                } else if (filter === 'queens') {
-                    boroughSelect.value = 'Queens';
-                }
-                
-                // Trigger change event to update map
-                const event = new Event('change');
-                boroughSelect.dispatchEvent(event);
-            }
-            
-            console.log(`Filter chip clicked: ${filter}`);
+
+            activeFilter = chip.dataset.filter;
+            applyQuickFilter(activeFilter);
         });
     });
+
+    // Apply quick filter to map
+    function applyQuickFilter(filter) {
+        if (!window.geoLayer) return;
+
+        const gapZones = getGapZones();
+        let visibleCount = 0;
+
+        window.geoLayer.eachLayer(layer => {
+            const zoneName = layer.feature.properties.zone;
+            const isGap = gapZones.find(g => g.zone === zoneName);
+            let show = false;
+
+            if (filter === 'all') {
+                show = true;
+            } else if (filter === 'underserved') {
+                show = !!isGap;
+            } else if (filter === 'normal') {
+                show = !isGap;
+            }
+
+            if (show) {
+                layer.setStyle({ 
+                    opacity: 1, 
+                    fillOpacity: isGap ? 0.6 : 0.3 
+                });
+                visibleCount++;
+            } else {
+                layer.setStyle({ 
+                    opacity: 0.1, 
+                    fillOpacity: 0.05 
+                });
+            }
+        });
+
+        // Show empty state if no zones visible
+        if (visibleCount === 0) {
+            emptyState.style.display = 'flex';
+        } else {
+            emptyState.style.display = 'none';
+        }
+    }
+
+    // Make available globally for updates when gaps change
+    window.applyQuickFilter = applyQuickFilter;
 });
