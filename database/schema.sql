@@ -49,3 +49,5 @@ CREATE TABLE IF NOT EXISTS trips (
     congestion_surcharge REAL,
     pickup_time_id INTEGER,
     dropoff_time_id INTEGER,
+
+);
