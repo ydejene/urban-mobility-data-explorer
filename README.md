@@ -1,5 +1,7 @@
 # NYC Taxi Urban Mobility Data Explorer
 
+Team task sheet  - [https://docs.google.com/spreadsheets/d/1DmfLK_9kFoBP550wWKPLM11yVt0t52JibP-lopPt2uA/edit?usp=sharing]
+
 ## System Architecture
 
 ### Architecture Philosophy
@@ -13,7 +15,7 @@ Our architecture follows a **user-centric, insight-driven design** that transfor
 
 ---
 
-### Loading Test Data (Due to extremely large file size, real taxi data not included in repo but sample datasets are available)
+### Loading Test Data (Due to extremely large file size, real taxi data not included in repo but sample datasets are available for demo purposes)
 ```bash
 python backend/load_test_data.py
 ```
