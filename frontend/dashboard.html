@@ -79,3 +79,85 @@
             </div>
         </div>
     </header>
+
+    <main>
+        <div class="container">
+            <div class="filter-panel">
+                <button id="mobileFilterToggle" class="mobile-filter-toggle">
+                    <span>Filter Options</span>
+                    <svg class="toggle-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                </button>
+                <section class="controls">
+                    <div class="filter-group">
+                        <label>Date Range</label>
+                        <div class="date-inputs">
+                            <input type="date" id="startDate" value="2019-01-01">
+                            <input type="date" id="endDate" value="2019-01-31">
+                        </div>
+                    </div>
+                    <div class="filter-group">
+                        <label for="boroughFilter">Borough</label>
+                        <div class="custom-dropdown" id="boroughDropdown">
+                            <button class="dropdown-trigger" id="boroughTrigger">
+                                <span id="selectedBorough">All Boroughs</span>
+                                <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+                                    <path d="M6 8L2 4h8z" />
+                                </svg>
+                            </button>
+                            <div class="dropdown-menu" id="boroughMenu">
+                                <div class="dropdown-item" data-borough="all">
+                                    <span>All Boroughs</span>
+                                </div>
+                                <div class="dropdown-item has-submenu" data-borough="Manhattan">
+                                    <span>Manhattan</span>
+                                    <div class="submenu-toggle">
+                                        <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+                                            <path d="M8 6L4 2v8z" />
+                                        </svg>
+                                    </div>
+                                    <div class="submenu" data-borough-name="Manhattan"></div>
+                                </div>
+                                <div class="dropdown-item has-submenu" data-borough="Brooklyn">
+                                    <span>Brooklyn</span>
+                                    <div class="submenu-toggle">
+                                        <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+                                            <path d="M8 6L4 2v8z" />
+                                        </svg>
+                                    </div>
+                                    <div class="submenu" data-borough-name="Brooklyn"></div>
+                                </div>
+                                <div class="dropdown-item has-submenu" data-borough="Queens">
+                                    <span>Queens</span>
+                                    <div class="submenu-toggle">
+                                        <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+                                            <path d="M8 6L4 2v8z" />
+                                        </svg>
+                                    </div>
+                                    <div class="submenu" data-borough-name="Queens"></div>
+                                </div>
+                                <div class="dropdown-item has-submenu" data-borough="Bronx">
+                                    <span>Bronx</span>
+                                    <div class="submenu-toggle">
+                                        <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+                                            <path d="M8 6L4 2v8z" />
+                                        </svg>
+                                    </div>
+                                    <div class="submenu" data-borough-name="Bronx"></div>
+                                </div>
+                                <div class="dropdown-item has-submenu" data-borough="Staten Island">
+                                    <span>Staten Island</span>
+                                    <div class="submenu-toggle">
+                                        <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+                                            <path d="M8 6L4 2v8z" />
+                                        </svg>
+                                    </div>
+                                    <div class="submenu" data-borough-name="Staten Island"></div>
+                                </div>
+                                <div class="dropdown-item" data-borough="EWR">
+                                    <span>Newark (EWR)</span>
+                                </div>
+                            </div>
+                        </div>
