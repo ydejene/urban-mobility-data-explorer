@@ -267,5 +267,50 @@
                 </div>
             </section>
 
+            <!-- Borough Details Side Panel (Left) -->
+            <div id="boroughPanel" class="details-panel borough-panel">
+                <div class="panel-header">
+                    <h3 id="panelBoroughName">Borough Analysis</h3>
+                    <button id="closeBoroughPanelBtn" class="icon-btn">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"
+                            stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                </div>
+                <div class="panel-content" id="boroughPanelContent">
+                    <div class="panel-section">
+                        <p class="info-text">Select a borough from the dropdown to see detailed spatial analytics.</p>
+                    </div>
+                </div>
+            </div>
 
+            <!-- Details Side Panel (Right) -->
+            <div id="detailsPanel" class="details-panel">
+                <div class="panel-header">
+                    <h3 id="panelZoneName">Zone Details</h3>
+                    <button id="closePanelBtn" class="icon-btn">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"
+                            stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                </div>
+                <div class="panel-content">
+                    <div class="panel-section">
+                        <h4>Location</h4>
+                        <p id="panelBorough">-</p>
+                    </div>
+                    <div class="panel-section">
+                        <h4>Status</h4>
+                        <p id="panelStatus">-</p>
+                    </div>
+                    <div class="panel-section">
+                        <h4>Zone Information</h4>
+                        <p class="info-text">Click on any zone on the map to view detailed statistics and insights.</p>
+                    </div>
+                </div>
+            </div>
 
