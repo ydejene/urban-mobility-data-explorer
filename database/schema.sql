@@ -62,6 +62,6 @@ CREATE TABLE IF NOT EXISTS trips (
     FOREIGN KEY (pickup_location_id) REFERENCES taxi_zones(location_id),
     FOREIGN KEY (dropoff_location_id) REFERENCES taxi_zones(location_id),
     FOREIGN KEY (pickup_time_id) REFERENCES time_dim(time_id),
-    FOREIGN KEY (dropofftime_id) REFERENCES time_dim(time_id)
+    FOREIGN KEY (dropoff_time_id) REFERENCES time_dim(time_id)
 
 );
