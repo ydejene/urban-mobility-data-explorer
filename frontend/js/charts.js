@@ -1,176 +1,173 @@
-// Charts with API integration
-document.addEventListener('DOMContentLoaded', function() {
-    const API_BASE = 'http://127.0.0.1:5000/api';
+// Chart management with tab switching
+document.addEventListener('DOMContentLoaded', () => {
+    const API_BASE = window.API_BASE || 'http://127.0.0.1:5000/api';
     
-    // Fetch and render trips by hour chart
-    async function loadTripsChart() {
+    const startDateInput = document.getElementById('startDate');
+    const endDateInput = document.getElementById('endDate');
+    const boroughFilter = document.getElementById('boroughFilter');
+    const chartLoadingOverlay = document.getElementById('chartLoadingOverlay');
+    
+    let activeTab = 'rush-hour';
+
+    // Tab switching
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    tabBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            tabBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            activeTab = btn.dataset.tab;
+            loadChart();
+        });
+    });
+
+    // Load Rush Hour chart (hourly trip volume)
+    async function loadHourlyChart() {
+        chartLoadingOverlay.classList.remove('hidden');
+        
         try {
-            const response = await fetch(`${API_BASE}/trips/hourly`);
-            
-            if (!response.ok) {
-                console.error('API not ready, using sample data');
-                renderTripsChart(null);
-                return;
-            }
-            
-            const data = await response.json();
-            renderTripsChart(data);
-            
-        } catch (error) {
-            console.error('Error loading trips data:', error);
-            renderTripsChart(null);
-        }
-    }
-    
-    function renderTripsChart(apiData) {
-        // Use API data if available, otherwise use sample data
-        const hourlyData = apiData || {
-            labels: ['12am', '3am', '6am', '9am', '12pm', '3pm', '6pm', '9pm'],
-            datasets: [{
-                label: 'Number of Trips',
-                data: [120, 80, 200, 450, 380, 520, 680, 550],
-                backgroundColor: '#FFC107',
-                borderColor: '#1e3a5f',
-                borderWidth: 1
-            }]
-        };
-        
-        const ctx = document.getElementById('trips-by-hour-chart').getContext('2d');
-        
-        const tripsChart = new Chart(ctx, {
-            type: 'bar',
-            data: hourlyData,
-            options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        title: {
-                            display: true,
-                            text: 'Number of Trips'
+            const startDate = startDateInput.value;
+            const endDate = endDateInput.value;
+            const borough = boroughFilter.value;
+
+            const url = new URL(`${API_BASE}/trips/hourly`);
+            if (startDate) url.searchParams.append('start_date', startDate);
+            if (endDate) url.searchParams.append('end_date', endDate);
+            if (borough !== 'all') url.searchParams.append('borough', borough);
+            if (window.activeZoneId) url.searchParams.append('zone_id', window.activeZoneId);
+
+            const resp = await fetch(url);
+            const data = await resp.json();
+
+            // Destroy existing chart
+            const chartStatus = Chart.getChart("mainChart");
+            if (chartStatus !== undefined) chartStatus.destroy();
+
+            const ctx = document.getElementById('mainChart').getContext('2d');
+
+            // Find peak hour
+            const hours = Object.keys(data);
+            const counts = Object.values(data).map(d => d.trips);
+            const maxVal = Math.max(...counts);
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: hours.map(h => `${h}:00`),
+                    datasets: [{
+                        label: 'Trip Volume',
+                        data: counts,
+                        backgroundColor: counts.map(c => c === maxVal && c > 0 ? '#f0883e' : '#58a6ff'),
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => {
+                                    const hour = context.label.split(':')[0];
+                                    const speed = data[hour].speed;
+                                    return [
+                                        `Trips: ${context.raw}`,
+                                        `Avg Speed: ${speed} MPH` + (speed < 5 && context.raw > 0 ? ' (⚠️ Congested)' : '')
+                                    ];
+                                }
+                            }
                         }
                     },
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'Hour of Day'
+                    scales: {
+                        y: { 
+                            beginAtZero: true,
+                            grid: { color: 'rgba(255,255,255,0.1)' }
+                        },
+                        x: { 
+                            grid: { display: false }
                         }
                     }
                 }
-            }
-        });
-        
-        console.log('Trips by hour chart created');
+            });
+        } catch (err) {
+            console.error('Error loading hourly chart:', err);
+        } finally {
+            chartLoadingOverlay.classList.add('hidden');
+        }
     }
+
+    // Load Congestion Index chart
+    async function loadCongestionChart() {
+        chartLoadingOverlay.classList.remove('hidden');
+        
+        try {
+            const startDate = startDateInput.value;
+            const endDate = endDateInput.value;
+            const borough = boroughFilter.value;
+            
+            const url = new URL(`${API_BASE}/trips/revenue`);
+            if (startDate) url.searchParams.append('start_date', startDate);
+            if (endDate) url.searchParams.append('end_date', endDate);
+            if (borough !== 'all') url.searchParams.append('borough', borough);
+            if (window.activeZoneId) url.searchParams.append('zone_id', window.activeZoneId);
+
+            const resp = await fetch(url);
+            const data = await resp.json();
+
+            // Destroy existing chart
+            const chartStatus = Chart.getChart("mainChart");
+            if (chartStatus !== undefined) chartStatus.destroy();
+
+            const ctx = document.getElementById('mainChart').getContext('2d');
+            
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(data),
+                    datasets: [{
+                        label: 'Congestion Index (Lower is Better)',
+                        data: Object.values(data),
+                        backgroundColor: '#ff7b72',
+                        borderColor: '#ff7b72',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: { 
+                        y: { 
+                            beginAtZero: true,
+                            grid: { color: 'rgba(255,255,255,0.1)' }
+                        },
+                        x: { 
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+        } catch (err) {
+            console.error('Error loading congestion chart:', err);
+        } finally {
+            chartLoadingOverlay.classList.add('hidden');
+        }
+    }
+
+    // Main chart loader
+    async function loadChart() {
+        if (activeTab === 'rush-hour') {
+            await loadHourlyChart();
+        } else {
+            await loadCongestionChart();
+        }
+    }
+
+    // Make loadChart available globally
+    window.loadChart = loadChart;
     
-    // Load chart on startup
-    loadTripsChart();
+    // Initial load
+    loadChart();
 });
-
-// Fetch and render fare by borough chart
-    async function loadFareChart() {
-        try {
-            const response = await fetch(`${API_BASE}/trips/revenue`);
-            
-            if (!response.ok) {
-                console.error('API not ready, using sample data');
-                renderFareChart(null);
-                return;
-            }
-            
-            const data = await response.json();
-            renderFareChart(data);
-            
-        } catch (error) {
-            console.error('Error loading fare data:', error);
-            renderFareChart(null);
-        }
-    }
-    
-    function renderFareChart(apiData) {
-        // Use API data if available, otherwise use sample data
-        const boroughData = apiData || {
-            labels: ['Manhattan', 'Brooklyn', 'Queens', 'Bronx', 'Staten Island'],
-            datasets: [{
-                label: 'Average Fare ($)',
-                data: [18.50, 15.20, 16.80, 14.30, 22.50],
-                backgroundColor: '#FFC107',
-                borderColor: '#1e3a5f',
-                borderWidth: 1
-            }]
-        };
-        
-        const fareCtx = document.getElementById('fare-by-borough-chart').getContext('2d');
-        
-        const fareChart = new Chart(fareCtx, {
-            type: 'bar',
-            data: boroughData,
-            options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        title: {
-                            display: true,
-                            text: 'Average Fare ($)'
-                        }
-                    },
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'Borough'
-                        }
-                    }
-                }
-            }
-        });
-        
-        console.log('Fare by borough chart created');
-    }
-    
-    // Load fare chart on startup
-    loadFareChart();
-
-    // Update charts when borough filter changes
-    const boroughFilter = document.getElementById('borough-select');
-    
-    if (boroughFilter) {
-        boroughFilter.addEventListener('change', async () => {
-            const selectedBorough = boroughFilter.value;
-            console.log(`Updating charts for: ${selectedBorough}`);
-            
-            // Destroy existing charts
-            const tripsChartElement = Chart.getChart("trips-by-hour-chart");
-            if (tripsChartElement) tripsChartElement.destroy();
-            
-            const fareChartElement = Chart.getChart("fare-by-borough-chart");
-            if (fareChartElement) fareChartElement.destroy();
-            
-            // Reload charts with new filter
-            await loadTripsChart();
-            await loadFareChart();
-        });
-    }
-
-    // Update charts when hour filter changes
-    const hourFilter = document.getElementById('hour-select');
-    
-    if (hourFilter) {
-        hourFilter.addEventListener('change', async () => {
-            const selectedHour = hourFilter.value;
-            console.log(`Filtering by time: ${selectedHour}`);
-            
-            // Destroy existing charts
-            const tripsChartElement = Chart.getChart("trips-by-hour-chart");
-            if (tripsChartElement) tripsChartElement.destroy();
-            
-            const fareChartElement = Chart.getChart("fare-by-borough-chart");
-            if (fareChartElement) fareChartElement.destroy();
-            
-            // Reload charts with new filter
-            await loadTripsChart();
-            await loadFareChart();
-        });
-    }
