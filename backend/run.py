@@ -160,3 +160,35 @@ def get_congestion_report():
         return jsonify(full_data['congestion'])
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@app.route('/api/trips/hourly', methods=['GET'])
+def get_hourly_activity():
+    """Returns trip volume and speed by hour for Rush Hour analysis"""
+    try:
+        from backend.logic.aggregators import TripAggregator
+        filters = {
+            "start_date": request.args.get('start_date'),
+            "end_date": request.args.get('end_date'),
+            "borough": request.args.get('borough', 'all'),
+            "zone_id": request.args.get('zone_id')
+        }
+        data = TripAggregator.get_hourly_stats(filters)
+        return jsonify(data)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/trips/gaps', methods=['GET'])
+def get_coverage_gaps():
+    """Returns top 5 underserved zones (Filtered)"""
+    try:
+        from backend.logic.aggregators import TripAggregator
+        filters = {
+            "start_date": request.args.get('start_date'),
+            "end_date": request.args.get('end_date'),
+            "borough": request.args.get('borough', 'all'),
+            "zone_id": request.args.get('zone_id')
+        }
+        data = TripAggregator.get_coverage_gaps(filters)
+        return jsonify(data)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
