@@ -452,7 +452,10 @@ for trip in trips:
 ---
 
 ## Team Roles
-[Our team participation details]
+- Brian Nakuwa - Architecture and Back End
+- Habibllah Ayodele  - Architecture and Front End
+- Derrick Gatete - Back End
+- Yonas Dejene - Back End
 
 ---
 
