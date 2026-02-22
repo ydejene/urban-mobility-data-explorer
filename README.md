@@ -13,6 +13,61 @@ Our architecture follows a **user-centric, insight-driven design** that transfor
 
 ---
 
+### Loading Test Data (Due to extremely large file size, real taxi data not included in repo but sample datasets are available)
+```bash
+python backend/load_test_data.py
+```
+
+This loads sample zones and trips for demonstration purposes.
+
+--- 
+
+### Installation & Setup
+1. **Clone the repository**
+```bash
+   git clone https://github.com/ydejene/urban-mobility-data-explorer
+   cd urban-mobility-data-explorer
+```
+
+2. **Install Python dependencies**
+```bash
+   pip install -r requirements.txt
+```
+
+3. **Initialize the database**
+```bash
+   cd backend
+   python -c "import sqlite3; conn = sqlite3.connect('database/taxi_data.db'); conn.executescript(open('database/schema.sql').read()); conn.close(); print('✓ Database initialized')"
+   cd ..
+```
+
+4. **Start the backend server**
+```bash
+   cd backend
+   python run.py
+```
+   You should see: `Running on http://127.0.0.1:5000`
+
+5. **Open the frontend**
+   - Option A: Open `frontend/signup.html` in your browser
+   - Option B: Use Live Server extension in VS Code
+
+### First Time Use
+1. **Create an account**: Go to `signup.html`
+   - Email: `test@example.com`
+   - Password: `test123`
+
+2. **Login**: Use the credentials you just created
+
+3. **Explore the dashboard!** 🎉
+
+### Test Account (Pre-created)
+If the database is already populated:
+- Email: `admin@test.com`
+- Password: `admin123`
+
+---
+
 ## Data Flow (User Journey)
 ```
  URBAN PLANNER / ANALYST
@@ -460,7 +515,7 @@ for trip in trips:
 ---
 
 ## Video Walkthrough
-[5-minute demo link]
+[https://www.youtube.com/watch?v=_YJP0Ue1T1M]
 
 Topics covered:
 - System architecture walkthrough
