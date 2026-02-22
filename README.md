@@ -1,10 +1,97 @@
 # NYC Taxi Urban Mobility Data Explorer
 
-Team task sheet  - [https://docs.google.com/spreadsheets/d/1DmfLK_9kFoBP550wWKPLM11yVt0t52JibP-lopPt2uA/edit?usp=sharing]
+## Project Overview
+
+A comprehensive urban mobility data exploration platform that analyzes and visualizes NYC Yellow Taxi trip data. The system provides an interactive dashboard for urban planners and analysts to explore trip patterns, identify coverage gaps, detect anomalies, and analyze rush hour trends—powered by a Flask backend, SQLite database, and custom ETL pipeline with feature engineering.
+
+## Team Members
+
+- **Brian Nakuwa** — Architecture and Back End
+- **Habibllah Ayodele** — Architecture and Front End
+- **Derrick Gatete** — Back End
+- **Yonas Dejene** — Back End
+
+## Quick Links
+
+| Resource | Link |
+|----------|------|
+| Video Walkthrough | [Watch on YouTube](https://www.youtube.com/watch?v=_YJP0Ue1T1M) |
+| Team Task Sheet | [Google Sheets](https://docs.google.com/spreadsheets/d/1DmfLK_9kFoBP550wWKPLM11yVt0t52JibP-lopPt2uA/edit?usp=sharing) |
+| Architecture Diagram | [docs/architecture-diagram.png](./docs/architecture-diagram.png) |
+
+## Table of Contents
+
+- [Project Overview](#project-overview)
+- [Project Structure](#project-structure)
+- [System Architecture](#system-architecture)
+  - [Installation & Setup](#installation--setup)
+  - [First Time Use](#first-time-use)
+- [Data Flow (User Journey)](#data-flow-user-journey)
+- [Architecture Layers](#architecture-layers)
+  - [Layer 1: User Interface](#layer-1-user-interface-frontend)
+  - [Layer 2: Security Layer](#layer-2-security-layer)
+  - [Layer 3: Application Layer (Backend)](#layer-3-application-layer-backend)
+  - [Layer 4: Data Access Layer](#layer-4-data-access-layer)
+  - [Layer 5: Storage Layer (Database)](#layer-5-storage-layer-database)
+  - [Layer 6: ETL Pipeline](#layer-6-etl-pipeline-background-processing)
+- [Security Architecture](#security-architecture)
+- [Key Insights to Derive](#key-insights-to-derive)
+- [Design Decisions & Trade-offs](#design-decisions--trade-offs)
+- [Future Enhancements](#future-enhancements)
+- [Unexpected Observation](#unexpected-observation)
+
+---
+
+## Project Structure
+
+```
+Urban_Mobility_Data_Explorer/
+├── README.md
+├── requirements.txt
+├── data/
+│   ├── yellow_tripdata_2019-01.csv    # Raw trip data (not in repo)
+│   ├── taxi_zones/
+│   │   └── taxi_zones.shp             # Zone boundaries (not in repo)
+│   └── logs/
+│       └── etl.log
+├── backend/
+│   ├── run.py                         # Flask API entry point
+│   ├── dal/
+│   │   ├── init_db.py                 # Database initialization
+│   │   └── trip_dal.py                # Data Access Layer
+│   ├── etl/
+│   │   ├── pipeline.py                # ETL orchestrator
+│   │   ├── ingestion/
+│   │   │   └── loaders.py             # CSV + Shapefile loaders
+│   │   ├── processing/
+│   │   │   └── cleaner.py             # Data cleaning
+│   │   └── features/
+│   │       └── feature_engineer.py    # Derived metrics
+│   ├── logic/
+│   │   ├── aggregators.py             # SQL business logic
+│   │   └── algorithms.py              # Custom QuickSort, anomaly detection
+│   └── security/
+│       ├── auth_logic.py              # Password hashing, tokens
+│       └── validator.py               # Request validation
+├── database/
+│   ├── schema.sql
+│   └── taxi_data.db                   # SQLite database
+├── frontend/
+│   ├── index.html                     # Login page
+│   ├── signup.html                    # Signup page
+│   ├── dashboard.html                 # Main dashboard
+│   ├── app.js                         # Frontend logic
+│   └── style.css                      # Stylesheet
+└── docs/
+    └── architecture-diagram.png
+```
+
+---
 
 ## System Architecture
 
 ### Architecture Philosophy
+
 Our architecture follows a **user-centric, insight-driven design** that transforms raw urban mobility data into actionable intelligence. The system is built around three core principles:
 
 1. **User Experience First**: Dashboard-centered design enabling urban planners to explore patterns intuitively
@@ -15,76 +102,95 @@ Our architecture follows a **user-centric, insight-driven design** that transfor
 
 ---
 
-### Loading Test Data (Due to extremely large file size, real taxi data not included in repo but sample datasets are available for demo purposes)
-```bash
-python backend/load_test_data.py
-```
-
-This loads sample zones and trips for demonstration purposes.
-
---- 
-
 ### Installation & Setup
+
+**Prerequisites**: Python 3.8 or higher
+
+**Note**: Run all commands from the project root directory.
+
 1. **Clone the repository**
-```bash
+   ```bash
    git clone https://github.com/ydejene/urban-mobility-data-explorer
    cd urban-mobility-data-explorer
-```
+   ```
 
-2. **Install Python dependencies**
-```bash
+2. **Create a virtual environment (recommended)**
+   ```bash
+   python -m venv venv
+   # Windows
+   venv\Scripts\activate
+   # macOS/Linux
+   source venv/bin/activate
+   ```
+
+3. **Install Python dependencies**
+   ```bash
    pip install -r requirements.txt
-```
+   ```
 
-3. **Initialize the database**
-```bash
-   cd backend
-   python -c "import sqlite3; conn = sqlite3.connect('database/taxi_data.db'); conn.executescript(open('database/schema.sql').read()); conn.close(); print('✓ Database initialized')"
-   cd ..
-```
+4. **Initialize the database**
+   ```bash
+   python backend/dal/init_db.py
+   ```
+   This creates `database/taxi_data.db` and all tables from `database/schema.sql`.
 
-4. **Start the backend server**
-```bash
-   cd backend
-   python run.py
-```
-   You should see: `Running on http://127.0.0.1:5000`
+5. **(Optional) Load data — ETL Pipeline**
 
-5. **Open the frontend**
-   - Option A: Open `frontend/signup.html` in your browser
-   - Option B: Use Live Server extension in VS Code
+   Raw taxi data is not included due to file size. To populate the dashboard with trip data:
+
+   - **Trip data**: [NYC TLC Trip Record Data](https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page) — download `yellow_tripdata_2019-01.csv`
+   - **Taxi zones shapefile**: [taxi_zones.zip](https://d37ci6vzurychx.cloudfront.net/misc/taxi_zones.zip) — extract to `data/taxi_zones/`
+
+   Place files as:
+   - `data/yellow_tripdata_2019-01.csv`
+   - `data/taxi_zones/taxi_zones.shp` (plus `.shx`, `.dbf` in same folder)
+
+   Then run:
+   ```bash
+   python backend/etl/pipeline.py
+   ```
+   Processes up to 1M rows. **You can skip this step** — the app runs with an empty database (login/signup work; dashboard will show no trip data).
+
+6. **Environment setup**  
+   No `.env` file required. Optional: set `SECRET_KEY` for production. Defaults work for local development.
+
+7. **Launch the application**
+   ```bash
+   python backend/run.py
+   ```
+   Output: `Running on http://127.0.0.1:5000`
+
+8. **Open the frontend**  
+   The Flask backend serves both the API and the frontend. In your browser, visit:
+   ```
+   http://127.0.0.1:5000
+   ```
+   You can also use [Live Server](https://marketplace.visualstudio.com/items?itemName=ritwickdey.LiveServer) in VS Code — ensure the backend is running on port 5000 so API calls succeed.
 
 ### First Time Use
-1. **Create an account**: Go to `signup.html`
-   - Email: `test@example.com`
-   - Password: `test123`
 
-2. **Login**: Use the credentials you just created
-
-3. **Explore the dashboard!** 🎉
-
-### Test Account (Pre-created)
-If the database is already populated:
-- Email: `admin@test.com`
-- Password: `admin123`
+1. **Sign up**: Go to `http://127.0.0.1:5000` and create an account (e.g. `test@example.com` / `test123`).
+2. **Log in** with your credentials.
+3. **Use the dashboard** to explore analytics (requires ETL data for trip visualizations).
 
 ---
 
 ## Data Flow (User Journey)
+
 ```
  URBAN PLANNER / ANALYST
    ↓ Opens browser
  WEB DASHBOARD (Interactive Maps + Charts)
-   ↓ Filters by date/location/fare
- SECURITY LAYER (Input validation, HTTPS)
+   ↓ Filters by date/location/borough
+ SECURITY LAYER (Input validation, CORS)
    ↓ API Request
- BACKEND API (Flask/Node.js)
-   ↓ Executes custom algorithm
- DATABASE (PostgreSQL/MySQL)
+ FLASK BACKEND API
+   ↓ Executes custom algorithms & SQL
+ SQLITE DATABASE
    ↑ Populated by
- ETL PIPELINE (Cleans + Enriches)
+ ETL PIPELINE (Cleans + Feature Engineering)
    ↑ Processes
- RAW DATA (Parquet + CSV + GeoJSON)
+ RAW DATA (CSV + Shapefile)
 ```
 
 ---
@@ -92,436 +198,335 @@ If the database is already populated:
 ## Architecture Layers
 
 ### Layer 1: User Interface (Frontend)
+
 **Purpose**: Enable urban planners to explore taxi trip patterns and derive insights
 
 | Component | Technology | Purpose |
 |-----------|------------|---------|
-| **Interactive Dashboard** | HTML5, CSS3, JavaScript | Main exploration interface with filters and visualizations |
-| **Map Visualization** | Leaflet.js / Mapbox GL | Renders taxi zones with GeoJSON polygons, heatmaps of pickup/dropoff density |
-| **Charts Engine** | Chart.js / D3.js | Time-series trends, fare distributions, borough comparisons |
-| **Filter Controls** | Vanilla JS | Date range, location, fare amount, trip distance selectors |
-| **Insight Cards** | Custom components | Display 3 key findings with supporting visuals |
+| **Interactive Dashboard** | HTML5, CSS3, JavaScript | Main exploration interface with borough/zone filters and visualizations |
+| **Map Visualization** | Leaflet.js | Renders taxi zones with GeoJSON polygons from Shapefile data |
+| **Charts Engine** | Chart.js | Time-series trends, hourly activity, rush hour analysis |
+| **Filter Controls** | Vanilla JS | Date range, borough, zone selectors |
+| **Auth Pages** | HTML/JS | Login (index.html), Signup (signup.html), Dashboard (dashboard.html) |
 
 **User Interactions**:
-- Select date range → Filter trips
-- Click taxi zone → Show zone-specific analytics
+- Select date range, borough, zone → Filter trips and analytics
+- Click taxi zone on map → Show zone-specific stats
 - Hover over chart → See detailed tooltips
-- Toggle view → Switch between map/chart/table
+- Login/Signup → Token-based session management
 
 ---
 
 ### Layer 2: Security Layer
+
 **Purpose**: Protect data and prevent malicious queries
 
 | Security Measure | Implementation | Protects Against |
 |-----------------|----------------|------------------|
-| **HTTPS/TLS** | SSL certificates | Man-in-the-middle attacks |
-| **Input Sanitization** | Backend validation | SQL injection, XSS |
-| **CORS Policy** | Whitelist allowed origins | Unauthorized API access |
-| **Rate Limiting** | Request throttling | DDoS, API abuse |
-| **SQL Parameterization** | Prepared statements | SQL injection |
-| **Auth Headers** | API key validation (optional) | Unauthorized access |
+| **Input Validation** | `backend/security/validator.py` | Malformed requests, invalid parameters |
+| **CORS Policy** | Flask-CORS | Unauthorized cross-origin API access |
+| **SQL Parameterization** | Prepared statements (?) | SQL injection |
+| **Auth Logic** | `backend/security/auth_logic.py` | Password hashing (bcrypt), token generation |
+| **Request Logging** | App logger | Audit trail of API requests |
 
 ---
 
 ### Layer 3: Application Layer (Backend)
+
 **Purpose**: Process requests, execute business logic, serve data
 
 #### REST API Endpoints
+
 ```
-GET  /api/trips?date=YYYY-MM-DD&borough=Manhattan&limit=100
-     → Returns filtered trip records
+GET  /                          → Serves index.html (Login)
+GET  /dashboard                 → Serves dashboard.html
+GET  /api/auth/signup (POST)    → Create user account
+POST /api/auth/login            → Authenticate, return token
+GET  /api/health                → Health check
 
-GET  /api/analytics/summary
-     → Returns aggregated stats (total trips, avg fare, revenue)
+GET  /api/trips/summary?start_date=...&end_date=...&borough=...&zone_id=...
+     → Returns mobility metrics (trip count, avg fare, revenue, speed, anomalies)
 
-GET  /api/zones
-     → Returns all taxi zones with GeoJSON boundaries
+GET  /api/trips/hourly?start_date=...&end_date=...&borough=...&zone_id=...
+     → Returns trip volume and speed by hour (rush hour analysis)
 
-GET  /api/heatmap?metric=pickups&date=YYYY-MM-DD
-     → Returns location density data for visualization
+GET  /api/trips/gaps?start_date=...&end_date=...&borough=...&zone_id=...
+     → Returns top underserved zones (dropoff/pickup ratio)
 
-POST /api/custom-query
-     → Accepts complex filter JSON for advanced analysis
+GET  /api/trips/revenue         → Congestion index and revenue metrics
+
+GET  /api/boroughs/<borough>/stats
+     → Returns aggregated stats for a specific borough
+
+GET  /api/zones                 → Returns all taxi zones with GeoJSON for map
+GET  /api/zones/<zone_id>/stats → Returns detailed stats for a zone
+
+GET  /api/report?start_date=...&end_date=...&borough=...&zone_id=...
+     → Returns detailed diagnostic report (anomalies, choke points)
 ```
 
-#### Custom Algorithm Implementation (NO BUILT-IN LIBRARIES)
-**Requirement**: Manually implement at least one algorithm without using built-in functions
+#### Custom Algorithm Implementation (No Built-in Libraries for Ranking)
 
-**Our Implementation**: **Custom Outlier Detection Algorithm**
+**Requirement**: Manually implement at least one algorithm without using built-in sort functions
 
-**Problem**: Identify anomalous trips (e.g., suspiciously high fares, impossible speeds)
+**Our Implementation**: **Custom QuickSort for Zone Ranking**
 
-**Approach**: Modified Z-score method implemented from scratch
+**Problem**: Rank taxi zones by coverage gap ratio (dropoff/pickup) to identify underserved areas
+
+**Approach**: Manual QuickSort implemented from scratch in `backend/logic/algorithms.py`
+
 ```python
-# Pseudo-code for Custom Outlier Detection
-def detect_outliers_custom(data, column, threshold=3):
-    # Step 1: Calculate mean manually
-    sum = 0
-    count = 0
-    for record in data:
-        sum += record[column]
-        count += 1
-    mean = sum / count
-    
-    # Step 2: Calculate standard deviation manually
-    squared_diff_sum = 0
-    for record in data:
-        diff = record[column] - mean
-        squared_diff_sum += (diff * diff)
-    variance = squared_diff_sum / count
-    std_dev = square_root(variance)  # Custom sqrt implementation
-    
-    # Step 3: Calculate modified z-score
-    outliers = []
-    for record in data:
-        z_score = (record[column] - mean) / std_dev
-        if absolute_value(z_score) > threshold:
-            outliers.append(record)
-    
-    return outliers
-
-# Time Complexity: O(n) - two passes through data
-# Space Complexity: O(k) - where k is number of outliers
+# Custom QuickSort (backend/logic/algorithms.py)
+def quick_sort_zones(arr, key='score'):
+    """
+    Manually implemented QuickSort - no built-in sorted() or sort_values().
+    Time Complexity: O(n log n) average
+    Space Complexity: O(log n)
+    """
+    if len(arr) <= 1:
+        return arr
+    pivot = arr[len(arr) // 2]
+    left = [x for x in arr if x[key] > pivot[key]]   # Descending
+    middle = [x for x in arr if x[key] == pivot[key]]
+    right = [x for x in arr if x[key] < pivot[key]]
+    return quick_sort_zones(left, key) + middle + quick_sort_zones(right, key)
 ```
 
-**Why Custom Implementation?**
-- Demonstrates understanding of statistical concepts
-- Avoids reliance on pandas/numpy built-ins
-- Allows fine-tuning for domain-specific anomalies
-
-**Other Custom Algorithms Considered**:
-- Quicksort for ranking trips by fare/distance
-- Hash table for grouping trips by location
-- Binary search for time-range queries
+**Other Custom Logic**:
+- **Anomaly Detection**: System noise (speed > 80 mph), economic noise (fare > $100 for < 1 mile)
+- **Coverage Gap Identification**: Supply vs. demand imbalance (high dropoff/pickup ratio)
+- **Choke Point Detection**: Zones with avg speed < 4.5 mph (slower than walking)
 
 ---
 
 ### Layer 4: Data Access Layer
-| Component | Purpose |
-|-----------|---------|
-| **Query Builder** | Constructs dynamic SQL based on API filters |
-| **Connection Pool** | Manages database connections efficiently |
-| **Result Serializer** | Converts DB rows to JSON for API responses |
-| **Query Optimizer** | Uses indexes and query hints for performance |
+
+| Component | Location | Purpose |
+|-----------|----------|---------|
+| **TripDAL** | `backend/dal/trip_dal.py` | Bulk insert trips and zones, CRUD abstraction |
+| **Init DB** | `backend/dal/init_db.py` | Database initialization from schema.sql |
+| **Connection** | SQLite with WAL mode | Optimized for read-heavy analytics |
 
 ---
 
 ### Layer 5: Storage Layer (Database)
 
+**Technology**: SQLite3 — chosen for portability, zero-configuration setup, and adequate performance for diagnostic/demo workloads.
+
 #### Database Schema (Normalized)
+
+**payment_types** (Dimension)
+```sql
+CREATE TABLE payment_types (
+    payment_id INTEGER PRIMARY KEY,
+    payment_name TEXT NOT NULL
+);
+```
+
+**taxi_zones** (Dimension)
+```sql
+CREATE TABLE taxi_zones (
+    location_id INTEGER PRIMARY KEY,
+    borough TEXT,
+    zone TEXT,
+    service_zone TEXT,
+    geojson TEXT  -- GeoJSON polygon for map rendering
+);
+```
+
+**time_dim** (Dimension)
+```sql
+CREATE TABLE time_dim (
+    time_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    datetime TIMESTAMP NOT NULL,
+    hour INTEGER, day_of_week INTEGER, day_of_month INTEGER,
+    month INTEGER, year INTEGER, is_weekend BOOLEAN
+);
+```
 
 **trips** (Fact Table)
 ```sql
 CREATE TABLE trips (
-    trip_id SERIAL PRIMARY KEY,
-    pickup_datetime TIMESTAMP NOT NULL,
-    dropoff_datetime TIMESTAMP NOT NULL,
-    passenger_count INT,
-    trip_distance DECIMAL(10,2),
-    pickup_location_id INT REFERENCES taxi_zones(location_id),
-    dropoff_location_id INT REFERENCES taxi_zones(location_id),
-    fare_amount DECIMAL(10,2),
-    tip_amount DECIMAL(10,2),
-    total_amount DECIMAL(10,2),
+    trip_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    vendor_id, passenger_count, trip_distance, rate_code_id, payment_type_id,
+    fare_amount, extra, mta_tax, tip_amount, tolls_amount, total_amount, congestion_surcharge,
+    pickup_location_id, dropoff_location_id, pickup_time_id, dropoff_time_id,
     -- Derived features
-    trip_duration_minutes INT,
-    trip_speed_mph DECIMAL(5,2),
-    is_rush_hour BOOLEAN,
-    revenue_per_mile DECIMAL(10,2),
-    
-    INDEX idx_pickup_datetime (pickup_datetime),
-    INDEX idx_pickup_location (pickup_location_id),
-    INDEX idx_dropoff_location (dropoff_location_id)
+    speed_mph REAL,
+    fare_per_mile REAL,
+    trip_duration_seconds INTEGER,
+    pickup_date TEXT,    -- YYYY-MM-DD for fast filtering
+    pickup_hour INTEGER, -- 0-23 for rush hour analysis
+    store_and_fwd_flag BOOLEAN,
+    FOREIGN KEY (pickup_location_id) REFERENCES taxi_zones(location_id),
+    FOREIGN KEY (dropoff_location_id) REFERENCES taxi_zones(location_id)
 );
 ```
 
-**taxi_zones** (Dimension Table)
+**users** (Authentication)
 ```sql
-CREATE TABLE taxi_zones (
-    location_id INT PRIMARY KEY,
-    borough VARCHAR(50),
-    zone VARCHAR(100),
-    service_zone VARCHAR(50),
-    geojson_polygon TEXT  -- Stored GeoJSON for map rendering
+CREATE TABLE users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    email TEXT UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 ```
 
-**derived_features** (Feature Engineering Results)
-```sql
-CREATE TABLE derived_features (
-    feature_id SERIAL PRIMARY KEY,
-    trip_id INT REFERENCES trips(trip_id),
-    tips_to_fare_ratio DECIMAL(5,4),
-    is_long_distance BOOLEAN,
-    time_of_day_category VARCHAR(20),  -- morning/afternoon/evening/night
-    calculated_at TIMESTAMP DEFAULT NOW()
-);
-```
+**Indexes**:
+- `idx_trips_pickup_location`, `idx_trips_dropoff_location`, `idx_trips_pickup_date`, `idx_trips_pickup_hour`, `idx_trips_speed`, `idx_trips_total_amount`, etc.
 
 ---
 
 ### Layer 6: ETL Pipeline (Background Processing)
 
 #### Phase 1: Data Ingestion
-```python
-# etl/ingest.py
-def load_parquet_data(file_path):
-    # Load yellow_tripdata.parquet
-    # Returns: list of trip dictionaries
 
-def load_zone_lookup(csv_path):
-    # Load taxi_zone_lookup.csv
-    # Returns: location_id → {borough, zone, service_zone}
-
-def load_geojson_zones(json_path):
-    # Load taxi_zones.json
-    # Returns: location_id → GeoJSON polygon
-```
+| Loader | File | Purpose |
+|--------|------|---------|
+| **CSVLoader** | `backend/etl/ingestion/loaders.py` | Loads `yellow_tripdata_2019-01.csv` in chunks (100k rows) |
+| **ShapefileLoader** | `backend/etl/ingestion/loaders.py` | Loads `taxi_zones.shp`, reprojects EPSG:2263 → EPSG:4326, outputs GeoJSON |
 
 #### Phase 2: Data Cleaning & Validation
-```python
-# etl/clean.py
-cleaning_log = {
-    "total_records": 0,
-    "duplicates_removed": 0,
-    "outliers_flagged": 0,
-    "missing_values_handled": 0,
-    "excluded_records": []
-}
 
-def clean_trip_data(raw_trips):
-    # 1. Remove duplicates (same pickup/dropoff time + locations)
-    # 2. Handle missing values:
-    #    - passenger_count: default to 1
-    #    - fare_amount: exclude if missing
-    # 3. Detect outliers:
-    #    - trip_distance > 100 miles → flag
-    #    - fare_amount > $500 → flag
-    #    - trip_speed > 100 mph → flag
-    #    - negative fares → exclude
-    # 4. Normalize timestamps to UTC
-    # 5. Log all exclusions to cleaning_log
-```
+`backend/etl/processing/cleaner.py`:
 
-**Data Quality Assumptions**:
-- Trips with $0 fare are legitimate (e.g., disputes) → kept
-- Passenger count of 0 → default to 1
-- Missing tip amount → assume $0 (cash tip)
-- Trips < 0.1 miles → excluded as invalid
+- Remove trips with negative `fare_amount` or `total_amount`
+- Remove trips with zero or negative `trip_distance`
+- Remove trips with zero `passenger_count`
+- Drop rows with missing `PULocationID`, `DOLocationID`, `tpep_pickup_datetime`
+- Validate zone geometry (non-empty polygons)
 
 #### Phase 3: Feature Engineering
-**At least 3 derived features required**
+
+`backend/etl/features/feature_engineer.py`:
 
 | Feature | Formula | Business Value |
 |---------|---------|----------------|
-| **trip_speed_mph** | `trip_distance / (duration_hours)` | Identify congestion patterns, validate data quality |
-| **revenue_per_mile** | `total_amount / trip_distance` | Measure driver efficiency, identify profitable routes |
-| **tips_to_fare_ratio** | `tip_amount / fare_amount` | Understand tipping behavior by location/time |
-| **is_rush_hour** | `pickup_time in [7-9am, 5-7pm]` | Analyze demand patterns during peak hours |
-| **is_long_distance** | `trip_distance > 10 miles` | Segment trips for airport vs local analysis |
+| **speed_mph** | `trip_distance / (duration_hours)` | Identify congestion, flag anomalies |
+| **fare_per_mile** | `fare_amount / trip_distance` | Route profitability |
+| **tip_percentage** | `(tip_amount / fare_amount) * 100` | Tipping behavior |
+| **pickup_hour** | Extract hour from datetime | Rush hour analysis |
+| **pickup_date** | YYYY-MM-DD | Fast date filtering |
+| **trip_duration_seconds** | Dropoff - Pickup | Duration analytics |
+| **Outlier capping** | speed > 100 mph → NaN | Data quality |
 
-**Justification**:
-- **trip_speed_mph**: Helps detect anomalies (e.g., 200 mph trips are data errors)
-- **revenue_per_mile**: Reveals which routes/times are most profitable for drivers
-- **tips_to_fare_ratio**: Shows geographic/temporal tipping patterns (e.g., higher tips in Manhattan?)
+#### Phase 4: Orchestration
+
+`backend/etl/pipeline.py`:
+1. Process zones (Shapefile → clean → insert)
+2. Process trips in 100k-row chunks: load → clean → feature engineer → insert
+3. Limit to 1M rows for demo
 
 ---
 
 ## Security Architecture
 
 ### Defense-in-Depth Strategy
+
 ```
-[User Input] 
-    → Frontend Validation (JS)
-        → HTTPS Encryption
-            → Backend Input Sanitization
-                → SQL Parameterization
-                    → Database Access Controls
-                        → Audit Logging
+[User Input]
+   → Frontend Validation (JS)
+       → CORS Policy
+           → Backend Input Sanitization (validator.py)
+               → SQL Parameterization
+                   → Database (SQLite)
+                       → Request Logging
 ```
 
 ### Security Controls by Layer
+
 | Layer | Control | Implementation |
 |-------|---------|----------------|
-| Frontend | XSS Prevention | Escape all user inputs before rendering |
-| API | SQL Injection Prevention | Parameterized queries only, no string concatenation |
-| API | Rate Limiting | Max 100 requests/minute per IP |
-| Database | Access Controls | Read-only user for API, admin for ETL |
-| Database | Encryption at Rest | Database-level encryption enabled |
-| Logging | Audit Trail | All queries logged with timestamp + user |
+| Frontend | XSS Prevention | Escape user inputs before rendering |
+| API | SQL Injection Prevention | Parameterized queries only |
+| API | Auth | bcrypt password hashing, token-based sessions |
+| Database | Access | Single file, app-managed connections |
 
 ---
 
 ## Key Insights to Derive
 
 ### Insight 1: Rush Hour Congestion Patterns
-**Hypothesis**: Trip speeds drop 40% during rush hours in Manhattan
 
-**Derivation**:
-```sql
-SELECT 
-    EXTRACT(HOUR FROM pickup_datetime) as hour,
-    AVG(trip_speed_mph) as avg_speed,
-    COUNT(*) as trip_count
-FROM trips
-WHERE pickup_location_id IN (SELECT location_id FROM taxi_zones WHERE borough = 'Manhattan')
-GROUP BY hour
-ORDER BY hour;
-```
+**Hypothesis**: Trip speeds drop significantly during rush hours in specific boroughs
 
-**Visualization**: Line chart showing average speed by hour
-**Interpretation**: Identifies optimal times for travel, informs traffic policy
+**Derivation**: `/api/trips/hourly` — hourly stats with `avg_speed` and `trip_count`
+
+**Visualization**: Line chart of average speed by hour  
+**Interpretation**: Optimal travel times, traffic policy
 
 ---
 
-### Insight 2: Tipping Behavior by Borough
-**Hypothesis**: Passengers in Manhattan tip 15% more than in outer boroughs
+### Insight 2: Coverage Gap Analysis (Supply-Demand Imbalance)
 
-**Derivation**: Custom algorithm to calculate median tips_to_fare_ratio per borough
+**Hypothesis**: Zones where drop-offs exceed pick-ups indicate underserved areas
 
-**Visualization**: Bar chart comparing median tip ratios
-**Interpretation**: Socioeconomic patterns, driver route optimization
+**Derivation**: `/api/trips/gaps` — zones ranked by dropoff/pickup ratio using custom QuickSort
+
+**Visualization**: Map and table of top underserved zones  
+**Interpretation**: Where demand outstrips supply, expansion opportunities
 
 ---
 
-### Insight 3: Airport vs Local Trip Economics
-**Hypothesis**: Airport trips (long-distance) generate 3x revenue per hour
+### Insight 3: Anomaly Detection (System & Economic Noise)
 
-**Derivation**: 
-```python
-# Custom grouping algorithm (no pandas groupby)
-airport_zones = [132, 138]  # JFK, LaGuardia
-local_revenue_per_hour = []
-airport_revenue_per_hour = []
+**Hypothesis**: Impossible speeds and suspicious fare/distance ratios indicate data errors or fraud
 
-for trip in trips:
-    revenue_per_hour = trip.total_amount / (trip.duration_minutes / 60)
-    if trip.dropoff_location_id in airport_zones:
-        airport_revenue_per_hour.append(revenue_per_hour)
-    else:
-        local_revenue_per_hour.append(revenue_per_hour)
+**Derivation**: Custom logic in `algorithms.py` and `aggregators.py`:
+- **System noise**: `speed_mph > 80`
+- **Economic noise**: `trip_distance < 1` and `fare_amount > 100`
+- **Choke points**: `avg_speed < 4.5 mph` (slower than walking)
 
-# Calculate medians manually (custom implementation)
-```
-
-**Visualization**: Box plot comparing distributions
-**Interpretation**: Driver strategy optimization, demand forecasting
+**Visualization**: Diagnostic report, anomaly counts in summary  
+**Interpretation**: Data quality, possible meter issues
 
 ---
 
 ## Design Decisions & Trade-offs
 
-### Decision 1: PostgreSQL vs SQLite
-**Choice**: PostgreSQL
-**Reasoning**: 
-- Better indexing for large datasets
-- GIS extension (PostGIS) for spatial queries
-- Production-ready
-- Trade-off: More complex setup than SQLite
+### Decision 1: SQLite vs PostgreSQL
 
-### Decision 2: Frontend-only vs API-driven
-**Choice**: REST API backend
+**Choice**: SQLite  
 **Reasoning**:
-- Enables advanced filtering (custom queries)
-- Scalable to mobile apps
-- Separates concerns
-- Trade-off: More development time
+- Zero-configuration, portable
+- Adequate for demo and single-user use
+- Trade-off: Less suitable for high-concurrency production
 
-### Decision 3: Real-time ETL vs Batch Processing
-**Choice**: Batch processing
+### Decision 2: Vanilla JS vs React/Vue
+
+**Choice**: Vanilla JavaScript  
 **Reasoning**:
-- Dataset is historical (not streaming)
-- Allows thorough data quality checks
-- Simpler error handling
-- Trade-off: Not suitable for real-time dashboards
+- Lightweight, no build step
+- Fast iteration
+- Trade-off: Less structure for very large UIs
+
+### Decision 3: Batch ETL vs Real-time Streaming
+
+**Choice**: Batch processing  
+**Reasoning**:
+- Historical dataset, not streaming
+- Full data quality checks possible
+- Trade-off: Not real-time
 
 ---
 
 ## Future Enhancements
+
 1. **Machine Learning**: Predict trip demand by location/time
-2. **Real-time Streaming**: Integrate live taxi data APIs
-3. **Mobile App**: iOS/Android for drivers
-4. **Advanced Analytics**: Clustering for route optimization
-5. **Deployment**: AWS/Azure with auto-scaling
+2. **Real-time Streaming**: Integrate live NYC Open Data feeds
+3. **Mobile App**: iOS/Android for field use
+4. **Spatial Clustering**: ML to auto-group high-demand zones
+5. **Deployment**: Docker, cloud hosting with auto-scaling
 
 ---
 
 ## Unexpected Observation
-**Finding**: ~8% of trips have $0 tip but high fare amounts (>$50)
 
-**Impact on Design**: 
-- Added `payment_type` field to distinguish cash vs card payments
-- Realized cash tips aren't captured in data
-- Adjusted tipping analysis to exclude likely cash-payment trips
-- This influenced our feature engineering approach
+**Finding**: ~5% of trips had average speed > 100 mph, likely due to GPS/timestamp noise.
 
----
+**Impact**:
+- Added speed capping in `feature_engineer.py` (values > 100 set to NaN)
+- Custom anomaly detection for system noise (speed > 80 mph) and economic noise
+- Improved data integrity for dashboards
 
-## Project Structure
-```
-.
-├── README.md
-├── requirements.txt
-├── .env.example
-├── data/
-│   ├── raw/                          # Original datasets (git-ignored)
-│   │   ├── yellow_tripdata.parquet
-│   │   ├── taxi_zone_lookup.csv
-│   │   └── taxi_zones.json
-│   ├── processed/                    # Cleaned data
-│   │   └── analytics_cache.json
-│   └── logs/
-│       ├── etl.log
-│       └── excluded_records.json     # Transparency log
-├── etl/
-│   ├── ingest.py                     # Load Parquet/CSV/GeoJSON
-│   ├── clean.py                      # Data cleaning logic
-│   ├── feature_engineering.py        # Derive 3+ features
-│   ├── custom_algorithms.py          # Manual implementations
-│   └── run_etl.py                    # Orchestrator
-├── backend/
-│   ├── app.py                        # Flask/Express API
-│   ├── models.py                     # Database models
-│   ├── routes.py                     # API endpoints
-│   └── custom_algorithm.py           # NO built-in libs
-├── frontend/
-│   ├── index.html
-│   ├── css/
-│   │   └── styles.css
-│   ├── js/
-│   │   ├── map.js                    # Leaflet/Mapbox
-│   │   ├── charts.js                 # Chart.js/D3
-│   │   └── api.js                    # Fetch data
-│   └── assets/
-├── database/
-│   ├── schema.sql
-│   ├── indexes.sql
-│   └── dump.sql
-├── docs/
-│   ├── architecture-diagram.png
-│   └── technical-report.pdf
-└── tests/
-    ├── test_etl.py
-    └── test_api.py
-```
-
----
-
-## Team Roles
-- Brian Nakuwa - Architecture and Back End
-- Habibllah Ayodele  - Architecture and Front End
-- Derrick Gatete - Back End
-- Yonas Dejene - Back End
-
----
-
-## Video Walkthrough
-[https://www.youtube.com/watch?v=_YJP0Ue1T1M]
-
-Topics covered:
-- System architecture walkthrough
-- Custom algorithm explanation
-- Live dashboard demonstration
-- Key insights presentation
-- Technical challenges & solutions
