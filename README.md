@@ -13,6 +13,15 @@ Our architecture follows a **user-centric, insight-driven design** that transfor
 
 ---
 
+### Loading Test Data (Due to extremely large file size, real taxi data not included in repo but sample datasets are available)
+```bash
+python backend/load_test_data.py
+```
+
+This loads sample zones and trips for demonstration purposes.
+
+--- 
+
 ### Installation & Setup
 1. **Clone the repository**
 ```bash
