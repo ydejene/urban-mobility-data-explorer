@@ -256,4 +256,108 @@ class TripAggregator:
             return [{"zone": r[0], "borough": r[1], "ratio": round(r[2]/r[3], 2), "id": r[4]} for r in rows if r[3]]
         finally:
             conn.close()
+
+    @staticmethod
+    def get_detailed_report(filters):
+        """Compiles a comprehensive diagnostic report dataset"""
+        # 1. Get baseline summary metrics
+        summary_data = TripAggregator.get_global_summary(filters)
+        
+        # 2. Get Top 5 Zones by Volume
+        db_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'database', 'taxi_data.db')
+        conn = sqlite3.connect(db_path)
+        cur = conn.cursor()
+        
+        try:
+            where_clauses = []
+            params = []
+            if filters.get('start_date'):
+                where_clauses.append("pickup_date >= ?")
+                params.append(filters['start_date'])
+            if filters.get('end_date'):
+                where_clauses.append("pickup_date <= ?")
+                params.append(filters['end_date'])
+            
+            borough = filters.get('borough')
+            zone_id = filters.get('zone_id')
+
+            if zone_id:
+                where_clauses.append("pickup_location_id = ?")
+                params.append(zone_id)
+            elif borough and borough != 'all':
+                where_clauses.append("pickup_location_id IN (SELECT location_id FROM taxi_zones WHERE borough = ?)")
+                params.append(borough)
+
+            where_str = f"WHERE {' AND '.join(where_clauses)}" if where_clauses else "" if where_clauses else ""
+
+            if zone_id:
+                # 1. Get Zone Metadata
+                cur.execute("SELECT zone, borough FROM taxi_zones WHERE location_id = ?", (zone_id,))
+                zone_info = cur.fetchone()
+                zone_name, b_name = zone_info if zone_info else ("Unknown Zone", borough)
+                
+                # 2. Top Destinations (rather than general top zones)
+                query = f"""
+                    SELECT z_dest.zone, z_dest.borough, COUNT(*) as trip_count, AVG(t.speed_mph) as speed
+                    FROM trips t
+                    JOIN taxi_zones z_dest ON t.dropoff_location_id = z_dest.location_id
+                    {where_str}
+                    GROUP BY 1, 2
+                    ORDER BY trip_count DESC
+                    LIMIT 5
+                """
+                cur.execute(query, params)
+                top_zones = [{"zone": r[0], "borough": r[1], "trips": r[2], "speed": round(r[3], 1)} for r in cur.fetchall()]
+                
+                # 3. Localized comparison data
+                cur.execute(f"SELECT AVG(speed_mph) FROM trips {where_str}", params)
+                zone_avg_speed = cur.fetchone()[0] or 0
+                
+                # Comparison against borough baseline
+                b_where = ["z.borough = ?"]
+                b_params = [b_name]
+                if filters.get('start_date'): b_where.append("pickup_date >= ?"); b_params.append(filters['start_date'])
+                if filters.get('end_date'): b_where.append("pickup_date <= ?"); b_params.append(filters['end_date'])
+                
+                cur.execute(f"""
+                    SELECT AVG(speed_mph) FROM trips t 
+                    JOIN taxi_zones z ON t.pickup_location_id = z.location_id 
+                    WHERE {" AND ".join(b_where)}
+                """, b_params)
+                borough_baseline = cur.fetchone()[0] or 0
+                
+                # Check if zone is a gap
+                gaps = TripAggregator.get_coverage_gaps(filters)
+                is_gap = any(g['zone'] == zone_name for g in gaps)
+
+                # Rush Hour Analysis (Zone specific)
+                hourly_stats = TripAggregator.get_hourly_stats(filters)
+                peak_hour = max(hourly_stats.items(), key=lambda x: x[1]['trips']) if hourly_stats else (0, {"trips": 0, "speed": 0})
+
+                return {
+                    "metadata": {
+                        "generatedAt": time.strftime("%Y-%m-%d %H:%M:%S"),
+                        "scope": f"{b_name} / {zone_name}",
+                        "parentBorough": b_name,
+                        "period": f"{filters.get('start_date', 'All')} to {filters.get('end_date', 'All')}",
+                        "isZoneReport": True,
+                        "isGap": is_gap,
+                        "comparison": {
+                            "zoneSpeed": round(zone_avg_speed, 1),
+                            "boroughSpeed": round(borough_baseline, 1),
+                            "diff": round(((zone_avg_speed / borough_baseline * 100) - 100) if borough_baseline else 0, 1)
+                        }
+                    },
+                    "summary": summary_data['summary'],
+                    "topZones": top_zones, 
+                    "coverageGaps": gaps if is_gap else [], 
+                    "rushHour": {
+                        "hour": peak_hour[0],
+                        "trips": peak_hour[1]['trips'],
+                        "avgSpeed": peak_hour[1]['speed'],
+                        "congestionImpact": None,
+                        "trend": hourly_stats
+                    }
+                }
   
+   
