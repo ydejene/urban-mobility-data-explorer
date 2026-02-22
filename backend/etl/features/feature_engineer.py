@@ -20,3 +20,15 @@ class FeatureEngineer:
         df['is_weekend'] = df['tpep_pickup_datetime'].dt.weekday >= 5
         
         return df
+    
+    @staticmethod
+    def add_calculated_metrics(df):
+        """Calculates speed and financial ratios"""
+        
+        # 1. Average Speed (MPH)
+        # Avoid division by zero: trips with 0 duration were cleaned ealier, but be safe
+        duration_hours = df['trip_duration_seconds'] / 3600
+        df['speed_mph'] = np.where(duration_hours > 0, df['trip_distance'] / duration_hours, 0)
+        
+        # 2. Fare per Mile
+        df['fare_per_mile'] = np.where(df['trip_distance'] > 0, df['fare_amount'] / df['trip_distance'], 0)
