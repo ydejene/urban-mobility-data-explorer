@@ -56,6 +56,12 @@ CREATE TABLE IF NOT EXISTS trips (
     trip_duration_seconds INTEGER,
     pickup_date TEXT, -- YYYY-MM-DD for fast date filtering
     pickup_hour INTEGER, -- 0-23 for rush hour analysis
-    
+
+    -- Foreign Key Constraints
+    FOREIGN KEY (payment_type_id) REFERENCES payment_types(payment_id),
+    FOREIGN KEY (pickup_location_id) REFERENCES taxi_zones(location_id),
+    FOREIGN KEY (dropoff_location_id) REFERENCES taxi_zones(location_id),
+    FOREIGN KEY (pickup_time_id) REFERENCES time_dim(time_id),
+    FOREIGN KEY (dropofftime_id) REFERENCES time_dim(time_id)
 
 );
