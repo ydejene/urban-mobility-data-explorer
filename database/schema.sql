@@ -18,4 +18,4 @@ logging.basicConfig(
         logging.StreamHandler()
     ]
 )
-logger = logginggetLogger("ETL-Pipeline")
+logger = logging.getLogger("ETL-Pipeline")
