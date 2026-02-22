@@ -361,3 +361,15 @@ def get_zone_stats(zone_id):
         
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@app.route('/api/trips/revenue', methods=['GET'])
+def get_revenue():
+    try:
+        data = TripAggregator.get_revenue_by_day()
+        return jsonify(data)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+if __name__ == "__main__":
+    logger.info("Starting NYC Taxi API Server...")
+    app.run(debug=True, host='0.0.0.0', port=5000)
