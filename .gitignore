@@ -213,3 +213,18 @@ __marimo__/
 
 # Local Git Automation Script
 push.ps1
+
+#files
+
+database/**/*.db
+data/processed/
+data/logs/
+data/
+database/taxi_data.db*
+__pycache__/
+*.pyc
+.env
+.DS_Store
+detail.txt
+Urban_Mobility_Data_Explorer/
+.venv/
