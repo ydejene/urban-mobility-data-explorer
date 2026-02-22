@@ -16,3 +16,15 @@ CREATE TABLE IF NOT EXISTS taxi_zones (
     service_zone TEXT,
     geojson TEXT -- Stores the spatial polygon data for the map
 );
+
+-- 3. Create Dimension: TIME_DIM
+CREATE TABLE IF NOT EXISTS time_dim (
+    time_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    datetime TIMESTAMP NOT NULL,
+    hour INTEGER,
+    day_of_week INTEGER,
+    day_of_month INTEGER,
+    month INTEGER,
+    year INTEGER,
+    is_weekend BOOLEAN
+);
