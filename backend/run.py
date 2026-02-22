@@ -192,3 +192,17 @@ def get_coverage_gaps():
         return jsonify(data)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@app.route('/api/boroughs/<borough>/stats', methods=['GET'])
+def get_borough_stats(borough):
+    """Returns aggregated stats for a specific borough"""
+    try:
+        from backend.logic.aggregators import TripAggregator
+        filters = {
+            "start_date": request.args.get('start_date'),
+            "end_date": request.args.get('end_date')
+        }
+        data = TripAggregator.get_borough_stats(borough, filters)
+        return jsonify(data)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
