@@ -22,3 +22,24 @@ class TripDAL:
                 'tpep_dropoff_datetime': 'dropoff_time'
             }
             df_to_save = df_to_save.rename(columns=column_mapping)
+
+            target_columns = [
+                'vendor_id', 'passenger_count', 'trip_distance', 'rate_code_id', 
+                'payment_type_id', 'fare_amount', 'extra', 'mta_tax', 'tip_amount', 
+                'pickup_location_id', 'dropoff_location_id', 'tolls_amount', 
+                'improvement_surcharge', 'total_amount', 'congestion_surcharge', 
+                'speed_mph', 'fare_per_mile', 'trip_duration_seconds',
+                'pickup_date', 'pickup_hour'
+            ]
+            
+            df_final = df_to_save.reindex(columns=target_columns)
+            
+            df_final.to_sql('trips', conn, if_exists='append', index=False)
+            conn.commit()
+            print(f"Successfully inserted {len(df_final)} rows into 'trips' table.")
+        except Exception as e:
+            print(f"Error inserting trips: {str(e)}")
+            print(f"DF Columns: {trips_df.columns.tolist()}")
+
+        finally:
+            conn.close()
