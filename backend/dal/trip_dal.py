@@ -40,6 +40,28 @@ class TripDAL:
         except Exception as e:
             print(f"Error inserting trips: {str(e)}")
             print(f"DF Columns: {trips_df.columns.tolist()}")
+        finally:
+            conn.close()
 
+    def insert_zones(self, zones_data):
+        conn = sqlite3.connect(self.db_path, timeout=30)
+        try:
+            cur = conn.cursor()
+            for zone in zones_data:
+                attr = zone['attributes']
+                geom = zone['geometry']
+                cur.execute('''
+                    INSERT OR IGNORE INTO taxi_zones (location_id, borough, zone, geojson)
+                    VALUES (?, ?, ?, ?)
+                ''', (
+                    attr.get('LocationID'), 
+                    attr.get('borough'), 
+                    attr.get('zone'), 
+                    json.dumps(geom)
+                ))
+            conn.commit()
+            print(f"Successfully inserted {len(zones_data)} zones into 'taxi_zones' table.")
+        except Exception as e:
+            print(f"Error inserting zones: {e}")
         finally:
             conn.close()
