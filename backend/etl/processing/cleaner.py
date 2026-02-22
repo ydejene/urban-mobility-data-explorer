@@ -23,3 +23,9 @@ class DataCleaner:
         
         logger.info(f"Cleaning complete. Reduced rows from {initial_count} to {len(df)}.")
         return df
+    
+    @staticmethod
+    def clean_zone_data(zones_list):
+        """Cleans spatial data if necessary"""
+        # Ensure all zones have valid geometry
+        return [z for z in zones_list if z.get('geometry')]
