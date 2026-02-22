@@ -489,3 +489,52 @@ class TripAggregator:
             """
             cur.execute(query_3, params)
             top_zones = [{"zone": r[0], "trips": r[1]} for r in cur.fetchall()]
+
+            
+            # 4. List of Underserved Zones (also filtered by date)
+            date_where = ""
+            date_params = []
+            if filters:
+                if filters.get('start_date'):
+                    date_where += " AND pickup_date >= ?"
+                    date_params.append(filters['start_date'])
+                if filters.get('end_date'):
+                    date_where += " AND pickup_date <= ?"
+                    date_params.append(filters['end_date'])
+
+            query_4 = f"""
+                WITH PU AS (SELECT pickup_location_id as loc, COUNT(*) as cnt FROM trips WHERE 1=1 {date_where} GROUP BY 1),
+                     DO AS (SELECT dropoff_location_id as loc, COUNT(*) as cnt FROM trips WHERE 1=1 {date_where} GROUP BY 1)
+                SELECT z.zone, z.location_id
+                FROM DO
+                LEFT JOIN PU ON DO.loc = PU.loc
+                JOIN taxi_zones z ON DO.loc = z.location_id
+                WHERE {"z.borough = ?" if not is_citywide else "1=1"} AND (DO.cnt * 1.0 / NULLIF(PU.cnt, 0)) > 2.0
+                ORDER BY (DO.cnt * 1.0 / NULLIF(PU.cnt, 0)) DESC
+            """
+            final_params_4 = date_params + date_params
+            if not is_citywide: final_params_4.append(borough)
+            cur.execute(query_4, final_params_4)
+            underserved_results = [{"zone": r[0], "id": r[1]} for r in cur.fetchall()]
+            underserved_count = len(underserved_results)
+
+            # 5. Total Zones in this Borough
+            if is_citywide: cur.execute("SELECT COUNT(*) FROM taxi_zones")
+            else: cur.execute("SELECT COUNT(*) FROM taxi_zones WHERE borough = ?", (borough,))
+            zone_count = cur.fetchone()[0] or 0
+
+            return {
+                "borough": "Citywide" if is_citywide else borough,
+                "totalTrips": total_trips or 0,
+                "avgSpeed": round(avg_speed, 1) if avg_speed else 0,
+                "avgDistance": round(avg_distance, 2) if avg_distance else 0,
+                "pickupPassengers": pickup_passengers or 0,
+                "dropoffPassengers": dropoff_passengers,
+                "totalPassengers": (pickup_passengers or 0) + dropoff_passengers,
+                "topZones": top_zones,
+                "underservedCount": underserved_count,
+                "underservedZones": underserved_results,
+                "zoneCount": zone_count
+            }
+        finally:
+            conn.close()
