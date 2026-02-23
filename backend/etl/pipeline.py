@@ -4,10 +4,6 @@
 import os
 import sys
 import logging
-from etl.ingestion.loaders import CSVLoader, ShapefileLoader
-from etl.processing.cleaner import DataCleaner
-from etl.features.feature_engineer import FeatureEngineer
-from dal.trip_dal import TripDAL
 
 # Configure Logging for ETL
 log_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'data', 'logs')
@@ -26,6 +22,11 @@ logger = logging.getLogger("ETL-Pipeline")
 
 # Add project root to path for imports
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from etl.ingestion.loaders import CSVLoader, ShapefileLoader
+from etl.processing.cleaner import DataCleaner
+from etl.features.feature_engineer import FeatureEngineer
+from dal.trip_dal import TripDAL
 
 def run_pipeline():
     # 1. Setup paths
