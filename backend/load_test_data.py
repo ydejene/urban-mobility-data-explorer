@@ -65,4 +65,4 @@ cursor.executemany('''INSERT INTO trips (
 print(f"✓ {len(trips)} trips loaded")
 conn.commit()
 conn.close()
-print("\n🎉 DONE! Refresh your dashboard NOW!")
+print("\n DONE! Refresh your dashboard NOW!")
