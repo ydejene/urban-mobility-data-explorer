@@ -82,8 +82,17 @@ Urban_Mobility_Data_Explorer/
 │   ├── index.html                     # Login page
 │   ├── signup.html                    # Signup page
 │   ├── dashboard.html                 # Main dashboard
-│   ├── app.js                         # Frontend logic
-│   └── style.css                      # Stylesheet
+│   ├── css/
+│   │   └── styles.css                 # Main stylesheet (was "style.css" in older docs)
+│   └── js/                            # Frontend logic (multiple modules)
+│       ├── api.js
+│       ├── map.js
+│       ├── charts.js
+│       ├── panel.js
+│       ├── search.js
+│       ├── chips.js
+│       ├── insights.js
+│       └── sample-zones.js
 └── docs/
     └── architecture-diagram.png
 ```
