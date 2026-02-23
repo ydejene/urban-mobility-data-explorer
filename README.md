@@ -18,6 +18,8 @@ A comprehensive urban mobility data exploration platform that analyzes and visua
 | Video Walkthrough | [Watch on YouTube](https://www.youtube.com/watch?v=_YJP0Ue1T1M) |
 | Team Task Sheet | [Google Sheets](https://docs.google.com/spreadsheets/d/1DmfLK_9kFoBP550wWKPLM11yVt0t52JibP-lopPt2uA/edit?usp=sharing) |
 | Architecture Diagram | [docs/architecture-diagram.png](./docs/architecture-diagram.png) |
+| ERD Diagram | [docs/erd-diagram.png](./docs/erd-diagram.png) |
+| Scrum Board | [Team 2 Jira Board](https://alustudent-team-k1plq8kl.atlassian.net/jira/software/projects/NTUMDE/boards/67) |
 
 ## Table of Contents
 
