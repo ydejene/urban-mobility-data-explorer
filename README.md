@@ -140,10 +140,17 @@ Our architecture follows a **user-centric, insight-driven design** that transfor
    ```
 
 4. **Initialize the database**
-   ```bash
-   python backend/dal/init_db.py
-   ```
-   This creates `database/taxi_data.db` and all tables from `database/schema.sql`.
+  ```bash
+  python backend/dal/init_db.py
+  ```
+  This is the recommended command (it resolves paths relative to the script and works when run from the project root). It creates `database/taxi_data.db` and all tables from `database/schema.sql`.
+
+  *Alternative:* `backend/apply_schema.py` also applies the schema, but it expects to be run from the `backend` directory. If you prefer that script, run:
+  ```bash
+  cd backend
+  python apply_schema.py
+  ```
+  Running `python backend/apply_schema.py` from the project root may fail because that script uses relative paths.
 
 5. **(Optional) Load data — ETL Pipeline**
 
