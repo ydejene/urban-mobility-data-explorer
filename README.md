@@ -82,8 +82,17 @@ Urban_Mobility_Data_Explorer/
 │   ├── index.html                     # Login page
 │   ├── signup.html                    # Signup page
 │   ├── dashboard.html                 # Main dashboard
-│   ├── app.js                         # Frontend logic
-│   └── style.css                      # Stylesheet
+│   ├── css/
+│   │   └── styles.css                 # Main stylesheet (was "style.css" in older docs)
+│   └── js/                            # Frontend logic (multiple modules)
+│       ├── api.js
+│       ├── map.js
+│       ├── charts.js
+│       ├── panel.js
+│       ├── search.js
+│       ├── chips.js
+│       ├── insights.js
+│       └── sample-zones.js
 └── docs/
     └── architecture-diagram.png
 ```
@@ -131,10 +140,17 @@ Our architecture follows a **user-centric, insight-driven design** that transfor
    ```
 
 4. **Initialize the database**
-   ```bash
-   python backend/dal/init_db.py
-   ```
-   This creates `database/taxi_data.db` and all tables from `database/schema.sql`.
+  ```bash
+  python backend/dal/init_db.py
+  ```
+  This is the recommended command (it resolves paths relative to the script and works when run from the project root). It creates `database/taxi_data.db` and all tables from `database/schema.sql`.
+
+  *Alternative:* `backend/apply_schema.py` also applies the schema, but it expects to be run from the `backend` directory. If you prefer that script, run:
+  ```bash
+  cd backend
+  python apply_schema.py
+  ```
+  Running `python backend/apply_schema.py` from the project root may fail because that script uses relative paths.
 
 5. **(Optional) Load data — ETL Pipeline**
 
