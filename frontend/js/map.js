@@ -76,7 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                         const props = feature.properties;
                         const gap = gapZones.find(g => g.zone === props.zone);
-                        const status = gap ? '⚠️ Underserved' : '✓ Normal Coverage';
+                        const status = gap ? 'Underserved' : '✓ Normal Coverage';
 
                         hoverTooltip.innerHTML = `
                             <strong>${props.zone}</strong><br>

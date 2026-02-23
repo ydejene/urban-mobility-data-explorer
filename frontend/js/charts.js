@@ -72,7 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                     const speed = data[hour].speed;
                                     return [
                                         `Trips: ${context.raw}`,
-                                        `Avg Speed: ${speed} MPH` + (speed < 5 && context.raw > 0 ? ' (⚠️ Congested)' : '')
+                                        `Avg Speed: ${speed} MPH` + (speed < 5 && context.raw > 0 ? ' (Congested)' : '')
                                     ];
                                 }
                             }
